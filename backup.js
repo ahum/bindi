@@ -1,5 +1,3 @@
-import merge from 'lodash/merge';
-
 class TargetedBinding {
   constructor(el, expression, target) {
     this.el = el;
@@ -9,7 +7,6 @@ class TargetedBinding {
 
   set(v) {
     const { id, type } = this.target;
-    console.log('set: id: ', id, 'type: ', type, 'v: ', v);
     const node = this.el.shadowRoot.querySelector(`[bindi-id="${id}"]`);
     if (type === 'text') {
       node.textContent = v;
@@ -21,8 +18,6 @@ class TargetedBinding {
           this.onChange(node[this.target.value], this);
         });
       }
-    } else if (type === 'prop') {
-      node[this.target.propName] = v;
     }
   }
   /*init() {
@@ -129,9 +124,10 @@ const getExpressionModel = (acc, expression) => {
 
 const registerTarget = (acc, expression, opts) => {
   const em = getExpressionModel(acc, expression);
-  const t = merge({}, opts, {
+  const t = {
+    type: opts.type,
     id: `${expression}_${em.targets.length}`
-  });
+  }
   em.targets.push(t);
   return t.id;
 }
@@ -145,7 +141,9 @@ const walk = (node, outNode, acc) => {
     } else {
 
       return [].reduce.call(childNodes, (acc, n) => {
+        console.log('n: ', n.nodeType, n.nodeName, n);
         if (n.nodeType === 3) {
+
           const out = n.textContent.replace(/\[\[(.*?)\]\]/g, function (match, expression) {
             const targetId = registerTarget(acc, expression, { type: 'text' });
             return `<span bindi-id="${targetId}"></span>`;
@@ -153,19 +151,7 @@ const walk = (node, outNode, acc) => {
           outNode.innerHTML += out;
           return acc;
         } else {
-          const nn = n.cloneNode(false);
-
-          for (var i = 0; i < nn.attributes.length; i++) {
-            var a = nn.attributes[i];
-            if (a.value.indexOf('{{') === 0) {
-              const expression = a.value.match(/{{(.*?)}}/)[1];
-              const targetId = registerTarget(acc, expression, { type: 'prop', propName: a.name });
-              nn.removeAttribute(a.name);
-              nn.setAttribute('bindi-id', targetId);
-            }
-          }
-          outNode.appendChild(nn);
-          return walk(n, nn, acc);
+          return walk(n, outNode, acc);
         }
       }, acc);
     }
@@ -193,7 +179,49 @@ const parse = (raw) => {
   console.log('walk result: ', outDiv.innerHTML);
   return {
     models: out.models,
-    markup: outDiv.innerHTML
+    [
+    // {
+    //   expression: 'name',
+    //   targets: [
+    //     {
+    //       target: 'expr_name_1',
+    //       type: 'text'
+    //     },
+    //     {
+    //       target: 'expr_name_2',
+    //       type: 'prop'
+    //     }
+    //   ]
+    // },
+    // {
+    //   expression: 'surname',
+    //   targets: [
+    //     {
+    //       target: 'expr_surname',
+    //       type: 'text'
+    //     }
+    //   ]
+    // },
+    {
+      expression: 'foo',
+      targets: [
+        {
+          id: 'expr_foo_1',
+          type: 'text'
+        },
+        {
+          id: 'expr_foo_2',
+          type: 'attribute',
+          attr: 'value',
+          change: 'input',
+          value: 'value'
+        }
+      ]
+    }
+    ],
+    markup: `<div> hello <span bindi-id="expr_foo_1"></span>
+          <input type="text" bindi-id="expr_foo_2"></input> 
+    </div> `
   }
 }
 
