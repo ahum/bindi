@@ -25,44 +25,6 @@ class TargetedBinding {
       node[this.target.propName] = v;
     }
   }
-  /*init() {
-    const { el, expression } = this;
-    const { target, type } = this.target;
-    console.log('init. el: ', el, 'expression: ', expression);
-    Object.defineProperty(el, expression, {
-      set: function (v) {
-        console.log(`set: ${expression} with ${v}`);
-        const node = el.shadowRoot.querySelector(`#${target}`);
-        if (type === 'text') {
-          node.textContent = v;
-        } else if (type === 'attribute') {
-          node.setAttribute(this.target.attr, v);
-          if (this.target.change) {
- 
-            node.addEventListener(this.target.change, e => {
-              const eventType = `${expression}-changed`;
-              el.dispatchEvent(new CustomEvent(eventType, {
-                bubbles: true,
-                composed: true
-              }));
-            });
-          }
-        }
-      },
-      get: function () {
-        const node = el.shadowRoot.querySelector(`#${target}`);
-        if (type === 'text') {
-          return node.textContent;
-        } else if (type === 'attribute') {
-          if (this.target.value) {
-            return node[this.target.value];
-          } else {
-            return node.getAttribute(this.target.attr);
-          }
-        }
-      }
-    })
-  }*/
 }
 
 class ExpressionBindings {
@@ -172,12 +134,11 @@ const walk = (node, outNode, acc) => {
   } else {
     return acc;
   }
-
 }
+
 const parse = (raw) => {
 
   const fragment = document.createDocumentFragment();
-  fragment.innerHTML = raw;
   const div = document.createElement('div');
   div.innerHTML = raw;
   fragment.appendChild(div);

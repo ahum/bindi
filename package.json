@@ -1,18 +1,33 @@
 {
   "name": "bindi",
-  "version": "1.0.0",
-  "description": "",
-  "main": "el.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "version": "1.1.0-prerelease",
   "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "webpack": "^2.6.1",
-    "webpack-dev-server": "^2.4.5"
-  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "dependencies": {
     "lodash": "^4.17.4"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "gulp": "github:gulpjs/gulp#4.0",
+    "gulp-mocha": "^3.0.1",
+    "gulp-shell": "^0.5.2",
+    "gulp-sourcemaps": "^2.4.1",
+    "gulp-tslint": "^7.1.0",
+    "gulp-typescript": "^3.1.4",
+    "merge2": "^1.0.3",
+    "mocha": "*",
+    "proxyquire": "^1.7.11",
+    "release-helper": "PieLabs/release-helper#v1.3.0",
+    "run-sequence": "^1.2.2",
+    "sinon": "^1.17.7",
+    "tslint": "^4.4.2",
+    "typescript": "^2.3.4"
+  },
+  "scripts": {
+    "main": "./node_modules/.bin/gulp build",
+    "release": "./node_modules/.bin/gulp release",
+    "test": "./node_modules/.bin/gulp build && ./node_modules/.bin/mocha",
+    "live-test": "./node_modules/.bin/gulp watch"
   }
 }

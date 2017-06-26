@@ -10,7 +10,8 @@ export class ChildEl extends HTMLElement {
         padding: 10px;
         display: block;
       }
-    </style>[[name]]`, this);
+    </style>[[name]]
+    <input type="text" value="{{name::input}}"></input>`, this, ['name']);
     sr.innerHTML = markup;
   }
 }
@@ -30,7 +31,9 @@ export default class El extends HTMLElement {
       <div style="color: red;">red: [[foo]]</div>
       <span style="color:blue;">blue: [[foo]]</span>
     </div>
-    <child-el name="{{foo}}"></child-el>`, this);
+    <child-el name="{{foo::name-changed}}"></child-el>
+    <other-el name="{{foo::custom-event-name}}"></other-el>
+    `, this);
     sr.innerHTML = markup;
   }
 }
