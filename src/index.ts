@@ -3,36 +3,17 @@ import * as merge from 'lodash/merge';
 import parse, { ParseModel, Target } from './parse';
 
 import { ExpressionBindings } from './bindings';
-import { RegisterOpts } from './models';
 
-const getExpressionModel = (acc: ParseModel[], expression): ParseModel => {
-  const existing = acc.find(m => m.expression === expression);
-  if (existing) {
-    return existing;
-  } else {
+export default function (
+  rawMarkup: string,
+  el: HTMLElement,
+  props: string[]): { models: ParseModel[], markup: string } {
 
-    const newModel = {
-      expression,
-      targets: []
-    };
+  //1. parse the markup looking for candidates
+  const { models, markup } = parse(rawMarkup);
 
-    acc.push(newModel);
-    return newModel;
-  }
-};
 
-const registerTarget = (acc: ParseModel[], expression: string, opts: RegisterOpts): string => {
-  const em = getExpressionModel(acc, expression);
-  const t: Target = merge({}, opts, {
-    id: `${expression}_${em.targets.length}`
-  });
-  em.targets.push(t);
-  return t.id;
-};
-
-export default function (rawMarkup: string, el: HTMLElement): { models: any[], markup: string } {
-  const { models, markup } = parse(registerTarget, rawMarkup);
-
+  //2. convert models into bindings
   const bindings = models.map(b => {
     const { expression, targets } = b;
     const eb = new ExpressionBindings(el, expression, targets);

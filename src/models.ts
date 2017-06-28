@@ -5,9 +5,4 @@ export interface Result {
   bindings: any[];
 }
 
-export type RegisterOpts = {
-  type: string;
-  propName?: string;
-};
 
-export type RegisterTarget = (m: ParseModel[], e: string, opts: RegisterOpts) => string;

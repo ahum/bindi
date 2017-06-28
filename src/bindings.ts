@@ -1,23 +1,30 @@
+import { Expression, Target } from './parse';
+
 export class TargetedBinding {
-  constructor(readonly el: HTMLElement, readonly expression: string, readonly target) { }
+  constructor(readonly el: HTMLElement, readonly expression: Expression, readonly target: Target) {
+
+    console.log('expression: ', expression);
+    const { prop, event } = expression;
+    if (event) {
+      const { id, type } = this.target;
+      const node = this.el.shadowRoot.querySelector(`[bindi-id="${id}"]`);
+      node.addEventListener(event, (e) => {
+        const newValue = e.target[(target as any).propName];
+        console.log('new Value: ', newValue);
+      });
+    }
+  }
 
   set(v) {
     const { id, type } = this.target;
-    console.log('set: id: ', id, 'type: ', type, 'v: ', v);
     const node = this.el.shadowRoot.querySelector(`[bindi-id="${id}"]`);
+
     if (type === 'text') {
       node.textContent = v;
     } else if (type === 'attribute') {
-      node.setAttribute(this.target.attr, v);
-      if (this.target.change) {
-
-        node.addEventListener(this.target.change, e => {
-          console.log('todo... change handler');
-          //this.onChange(node[this.target.value], this);
-        });
-      }
+      node.setAttribute((this.target as any).attr, v);
     } else if (type === 'prop') {
-      node[this.target.propName] = v;
+      node[(this.target as any).propName] = v;
     }
   }
 }
@@ -26,21 +33,18 @@ export class ExpressionBindings {
   private targetedBindings: any[];
   private value;
 
-  constructor(readonly el: HTMLElement, readonly expression: string, readonly targets) {
+  constructor(readonly el: HTMLElement, readonly expression: Expression, readonly targets: Target[]) {
     this.targetedBindings = targets
       .map(t => new TargetedBinding(el, expression, t));
   }
 
   onChange(newValue, binding) {
-    console.log('onChange: ', newValue);
 
     this.value = newValue;
 
-    const eventType = `${this.expression}-changed`;
+    const eventType = `${this.expression.prop}-changed`;
 
     const remainder = this.targetedBindings.filter(tb => tb !== binding);
-
-    console.log('remainder: ', remainder);
 
     remainder.forEach(t => t.set(this.value));
 
@@ -59,7 +63,10 @@ export class ExpressionBindings {
 
     this.targetedBindings.forEach(t => t.onChange = this.onChange.bind(this));
 
-    Object.defineProperty(el, expression, {
+    /**
+     * define a setter for `expression` that calls .set on the targeted bindings
+     */
+    Object.defineProperty(el, expression.prop, {
       set: function (v) {
         that.value = v;
         that.targetedBindings.forEach(t => {

@@ -10,15 +10,12 @@ export class ChildEl extends HTMLElement {
         padding: 10px;
         display: block;
       }
-    </style>[[name]]`, this, ['name']);
-
-    //<input type="text" value="{{name::input}}"></input>`, this, ['name']);
+    </style>[[name]]
+    <input type="text" value="{{name::input}}"></input>`, this, ['name']);
     sr.innerHTML = markup;
   }
 }
 
-//<child-el name="{{foo::name-changed}}"></child-el>
-//<other-el name="{{foo::custom-event-name}}"></other-el>
 export default class El extends HTMLElement {
 
   constructor() {
