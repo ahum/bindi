@@ -1,22 +1,27 @@
 import { Expression, Target } from './parse';
 
-export class TargetedBinding {
-  constructor(readonly el: HTMLElement, readonly expression: Expression, readonly target: Target) {
+export type OnChange = (v: any, el: TargetedBinding) => void;
 
-    console.log('expression: ', expression);
-    const { prop, event } = expression;
-    if (event) {
-      const { id, type } = this.target;
-      const node = this.el.shadowRoot.querySelector(`[bindi-id="${id}"]`);
-      node.addEventListener(event, (e) => {
-        const newValue = e.target[(target as any).propName];
-        console.log('new Value: ', newValue);
-      });
-    }
+export class TargetedBinding {
+
+  private bound;
+
+  constructor(
+    readonly el: HTMLElement,
+    readonly expression: string,
+    readonly target: Target,
+    readonly onChange: OnChange) {
+
+    this.bound = this.eventHandler.bind(this);
+  }
+
+  eventHandler(e: Event) {
+    const newValue = e.target[(this.target as any).propName];
+    this.onChange(newValue, this);
   }
 
   set(v) {
-    const { id, type } = this.target;
+    const { id, type, event } = this.target;
     const node = this.el.shadowRoot.querySelector(`[bindi-id="${id}"]`);
 
     if (type === 'text') {
@@ -25,6 +30,12 @@ export class TargetedBinding {
       node.setAttribute((this.target as any).attr, v);
     } else if (type === 'prop') {
       node[(this.target as any).propName] = v;
+      const eventName = `${(this.target as any).propName}-changed`;
+      node.addEventListener(eventName, this.bound);
+    }
+
+    if (event) {
+      node.addEventListener(event, this.bound);
     }
   }
 }
@@ -33,16 +44,17 @@ export class ExpressionBindings {
   private targetedBindings: any[];
   private value;
 
-  constructor(readonly el: HTMLElement, readonly expression: Expression, readonly targets: Target[]) {
+  constructor(readonly el: HTMLElement, readonly expression: string, readonly targets: Target[]) {
     this.targetedBindings = targets
-      .map(t => new TargetedBinding(el, expression, t));
+      .map(t => new TargetedBinding(el, expression, t, this.onChange));
   }
 
   onChange(newValue, binding) {
 
     this.value = newValue;
 
-    const eventType = `${this.expression.prop}-changed`;
+    const eventType = `${this.expression}-changed`;
+
 
     const remainder = this.targetedBindings.filter(tb => tb !== binding);
 
@@ -52,8 +64,7 @@ export class ExpressionBindings {
       bubbles: true,
       composed: true
     };
-
-
+    //TODO: this should not be automatically dispatched.
     this.el.dispatchEvent(new CustomEvent(eventType, opts));
   }
 
@@ -66,7 +77,7 @@ export class ExpressionBindings {
     /**
      * define a setter for `expression` that calls .set on the targeted bindings
      */
-    Object.defineProperty(el, expression.prop, {
+    Object.defineProperty(el, expression, {
       set: function (v) {
         that.value = v;
         that.targetedBindings.forEach(t => {

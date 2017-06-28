@@ -8,9 +8,6 @@ const init = () => {
     .then(() => {
       const el = document.querySelector('my-el');
 
-      el.addEventListener('foo-changed', e => {
-        console.log('foo now: ', e.target.foo);
-      });
 
       el.name = 'ed';
       el.surname = 'eustace';

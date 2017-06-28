@@ -11,6 +11,7 @@ export type RegisterOpts = {
 export interface Target {
   type: string;
   id: string;
+  event?: string;
 }
 
 export interface PropTarget extends Target {
@@ -18,7 +19,7 @@ export interface PropTarget extends Target {
 }
 
 export interface ParseModel {
-  expression: Expression;
+  expression: string;
   targets: Target[];
 }
 
@@ -28,16 +29,14 @@ export interface ParseModel {
  * @param expression
  */
 const getOrCreateModel = (models: ParseModel[], expression: Expression): ParseModel => {
-  const existing = models.find(m =>
-    m.expression.prop === expression.prop &&
-    m.expression.event === expression.event);
+  const existing = models.find(m => m.expression === expression.prop);
 
   if (existing) {
     return existing;
   } else {
 
     const newModel = {
-      expression,
+      expression: expression.prop,
       targets: []
     };
 
@@ -72,7 +71,8 @@ const registerTarget = (models: ParseModel[], expression: Expression, opts: Regi
   const em = getOrCreateModel(models, expression);
   const baseName = expression.event ? `${expression.prop}_${expression.event}` : expression.prop;
   const t: Target = merge({}, opts, {
-    id: `${baseName}_${em.targets.length}`
+    id: `${baseName}_${em.targets.length}`,
+    event: expression.event
   });
   em.targets.push(t);
   return t.id;
