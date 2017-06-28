@@ -1,4 +1,4 @@
-import bindi from './lib/bindi';
+import bindi from '../src/index';
 
 export class ChildEl extends HTMLElement {
   constructor() {
@@ -10,19 +10,17 @@ export class ChildEl extends HTMLElement {
         padding: 10px;
         display: block;
       }
-    </style>[[name]]
-    <input type="text" value="{{name::input}}"></input>`, this, ['name']);
+    </style>[[name]]`, this, ['name']);
+
+    //<input type="text" value="{{name::input}}"></input>`, this, ['name']);
     sr.innerHTML = markup;
   }
 }
 
+//<child-el name="{{foo::name-changed}}"></child-el>
+//<other-el name="{{foo::custom-event-name}}"></other-el>
 export default class El extends HTMLElement {
 
-  /*<span>[[surname]]</span>
-  <child-el name="{{name}}"></child-el>
-      hello [[foo]] [[foo]]
-    </div>`, this);
-  */
   constructor() {
     super();
     let sr = this.attachShadow({ mode: 'open' });
@@ -30,9 +28,8 @@ export default class El extends HTMLElement {
       [[foo]]
       <div style="color: red;">red: [[foo]]</div>
       <span style="color:blue;">blue: [[foo]]</span>
+      <child-el name="{{foo}}"></child-el>
     </div>
-    <child-el name="{{foo::name-changed}}"></child-el>
-    <other-el name="{{foo::custom-event-name}}"></other-el>
     `, this);
     sr.innerHTML = markup;
   }

@@ -1,3 +1,5 @@
+import { ParseModel } from './parse';
+
 export interface Result {
   markup: string;
   bindings: any[];
@@ -5,6 +7,7 @@ export interface Result {
 
 export type RegisterOpts = {
   type: string;
-}
+  propName?: string;
+};
 
-export type RegisterTarget = (any, string, RegisterOpts) => string;
+export type RegisterTarget = (m: ParseModel[], e: string, opts: RegisterOpts) => string;

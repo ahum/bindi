@@ -1,6 +1,20 @@
 import * as models from './models';
 
-const walk = (registerTarget: models.RegisterTarget, node, outNode, acc) => {
+export interface Target {
+  type: string;
+  id: string;
+}
+
+export interface PropTarget extends Target {
+  propName: string;
+}
+
+export interface ParseModel {
+  expression: string;
+  targets: Target[];
+}
+
+const walk = (registerTarget: models.RegisterTarget, node: Node, outNode: HTMLElement, acc: ParseModel[]): ParseModel[] => {
 
   if (node) {
     const childNodes = node.childNodes;
@@ -8,7 +22,7 @@ const walk = (registerTarget: models.RegisterTarget, node, outNode, acc) => {
       return acc;
     } else {
 
-      return [].reduce.call(childNodes, (acc, n) => {
+      return [].reduce.call(childNodes, (acc: ParseModel[], n) => {
         if (n.nodeType === 3) {
           const out = n.textContent.replace(/\[\[(.*?)\]\]/g, function (match, expression) {
             const targetId = registerTarget(acc, expression, { type: 'text' });
@@ -38,7 +52,7 @@ const walk = (registerTarget: models.RegisterTarget, node, outNode, acc) => {
   }
 }
 
-export default (registerTarget: models.RegisterTarget, raw: string): { models: any[], markup: string } => {
+export default function (registerTarget: models.RegisterTarget, raw: string): { models: any[], markup: string } {
   const fragment = document.createDocumentFragment();
   const div = document.createElement('div');
   div.innerHTML = raw;
@@ -47,10 +61,10 @@ export default (registerTarget: models.RegisterTarget, raw: string): { models: a
   const destFragment = document.createDocumentFragment();
   const outDiv = document.createElement('div');
   destFragment.appendChild(outDiv);
-  const out = walk(registerTarget, fragment.firstChild, outDiv, { models: [] });
+  const models = walk(registerTarget, fragment.firstChild, outDiv, []);
 
   return {
-    models: out.models,
-    markup: outDiv.innerHTML
-  }
+    markup: outDiv.innerHTML,
+    models
+  };
 }
