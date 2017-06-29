@@ -3,9 +3,19 @@ import * as models from './models';
 
 export type RegisterTarget = (m: ParseModel[], e: string, opts: RegisterOpts) => string;
 
+
+/**
+ * Not really in use at this stage
+ */
+export enum BindType {
+  ONE_WAY = 'one-way',
+  TWO_WAY = 'two-way'
+}
+
 export type RegisterOpts = {
   type: string;
   propName?: string;
+  bind: BindType;
 };
 
 export interface Target {
@@ -77,20 +87,24 @@ const registerTarget = (models: ParseModel[], expression: Expression, opts: Regi
   em.targets.push(t);
   return t.id;
 };
+enum NodeType {
+  TEXT_NODE = 3
+}
 
 const walk = (node: Node, outNode: HTMLElement, acc: ParseModel[]): ParseModel[] => {
 
   if (node) {
-    const childNodes = node.childNodes;
+    const { childNodes } = node;
+
     if (childNodes.length === 0) {
       return acc;
     } else {
 
       return [].reduce.call(childNodes, (acc: ParseModel[], n) => {
-        if (n.nodeType === 3) {
+        if (n.nodeType === NodeType.TEXT_NODE) {
           const out = n.textContent.replace(/\[\[(.*?)\]\]/g, function (match, raw: string) {
             const expression = toExpression(raw);
-            const targetId = registerTarget(acc, expression, { type: 'text' });
+            const targetId = registerTarget(acc, expression, { type: 'text', bind: BindType.ONE_WAY });
             return `<span bindi-id="${targetId}"></span>`;
           });
           outNode.innerHTML += out;
@@ -100,10 +114,10 @@ const walk = (node: Node, outNode: HTMLElement, acc: ParseModel[]): ParseModel[]
 
           for (var i = 0; i < nn.attributes.length; i++) {
             var a = nn.attributes[i];
-            if (a.value.indexOf('{{') === 0) {
-              const raw: string = a.value.match(/{{(.*?)}}/)[1];
+            if (a.value.indexOf('{{') === 0 && a.value.indexOf('}}') === a.value.length - 2) {
+              const raw: string = a.value.match(/^{{(.*?)}}$/)[1];
               const expression = toExpression(raw);
-              const targetId = registerTarget(acc, expression, { type: 'prop', propName: a.name });
+              const targetId = registerTarget(acc, expression, { type: 'prop', propName: a.name, bind: BindType.TWO_WAY });
               nn.removeAttribute(a.name);
               nn.setAttribute('bindi-id', targetId);
             }
@@ -118,20 +132,21 @@ const walk = (node: Node, outNode: HTMLElement, acc: ParseModel[]): ParseModel[]
   }
 };
 
-export default function (raw: string): { models: ParseModel[], markup: string } {
-  console.log('---> bindi', raw);
-  const fragment = document.createDocumentFragment();
-  const div = document.createElement('div');
-  div.innerHTML = raw;
-  fragment.appendChild(div);
+const parser = new DOMParser();
 
-  const destFragment = document.createDocumentFragment();
-  const outDiv = document.createElement('div');
-  destFragment.appendChild(outDiv);
-  const models = walk(fragment.firstChild, outDiv, []);
+export default function (raw: string): { models: ParseModel[], markup: string } {
+  /**
+   * note: we use the DOMParser so when parsing we're not instantiating the custom element definitions.
+   */
+  const doc = parser.parseFromString(`<div id="bindi-root">${raw}</div>`, 'text/html');
+  const out = parser.parseFromString('', 'text/html');
+
+  const root = doc.querySelector('#bindi-root');
+  const outRoot = out.querySelector('body');
+  const models = walk(root, outRoot, []);
 
   return {
-    markup: outDiv.innerHTML,
+    markup: outRoot.innerHTML,
     models
   };
 }

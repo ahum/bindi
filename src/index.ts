@@ -20,5 +20,5 @@ export default function (
     eb.init();
   });
 
-  return { markup, models: [] };
+  return { markup, models };
 }

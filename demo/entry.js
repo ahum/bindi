@@ -1,7 +1,24 @@
 import El, { ChildEl } from './el';
+
+import observe from '../src/observe';
+
 customElements.define('my-el', El);
 customElements.define('child-el', ChildEl);
 
+
+const user = {
+  name: 'ed'
+}
+
+const observedUser = observe(user);
+
+console.log('>> ', observedUser, observedUser.isProxy);
+observedUser.onChange('name', (n) => {
+  console.log('new name...', n);
+  console.log('user.name:', user.name);
+});
+
+observedUser.name = 'joe';
 
 const init = () => {
   customElements.whenDefined('my-el')

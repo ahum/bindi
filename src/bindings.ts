@@ -27,10 +27,11 @@ export class TargetedBinding {
     if (type === 'text') {
       node.textContent = v;
     } else if (type === 'attribute') {
-      node.setAttribute((this.target as any).attr, v);
+      //node.setAttribute((this.target as any).attr, v);
+      //TODO
     } else if (type === 'prop') {
       node[(this.target as any).propName] = v;
-      const eventName = `${(this.target as any).propName}-changed`;
+      const eventName = event ? event : `${(this.target as any).propName}-changed`;
       node.addEventListener(eventName, this.bound);
     }
 
