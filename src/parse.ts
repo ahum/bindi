@@ -29,7 +29,7 @@ export interface PropTarget extends Target {
 }
 
 export interface ParseModel {
-  expression: string;
+  expression: Expression;
   targets: Target[];
 }
 
@@ -39,14 +39,14 @@ export interface ParseModel {
  * @param expression
  */
 const getOrCreateModel = (models: ParseModel[], expression: Expression): ParseModel => {
-  const existing = models.find(m => m.expression === expression.prop);
+  const existing = models.find(m => m.expression.raw === expression.raw);
 
   if (existing) {
     return existing;
   } else {
 
     const newModel = {
-      expression: expression.prop,
+      expression,
       targets: []
     };
 
@@ -55,20 +55,59 @@ const getOrCreateModel = (models: ParseModel[], expression: Expression): ParseMo
   }
 };
 
-export type Expression = {
-  prop: string;
-  event?: string;
-};
-
-const toExpression = (s: string): Expression => {
-  console.log('[toExpression]', s);
-  if (s.indexOf('::') !== -1) {
-    const [prop, event] = s.split('::');
-    return { prop, event };
-  } else {
-    return { prop: s };
+export class Expression {
+  static build(raw: string): Expression {
+    const props = (s: string): string[] => s.split('.');
+    console.log('[toExpression]', raw);
+    if (raw.indexOf('::') !== -1) {
+      const [p, event] = raw.split('::');
+      return new Expression(props(p), event);
+    } else {
+      return new Expression(props(raw));
+    }
   }
-};
+
+  get root(): string {
+    return this.props[0];
+  }
+
+  get rest(): string {
+    if (this.nested) {
+      return this.raw.replace(`${this.root}.`, '');
+    } else {
+      return '';
+    }
+  }
+
+  get raw(): string {
+    return this.props.join('.');
+  }
+
+  get nested(): boolean {
+    return this.props.length > 1;
+  }
+
+  domId(index: number): string {
+    const propString = this.props.join('_');
+    return `${this.event ? `${propString}::${this.event}` : propString}_${index}`;
+  }
+
+  mkString(delimiter: string): string {
+    return this.props.join(delimiter);
+  }
+
+  private constructor(private props: string[], readonly event?: string) {
+    if (!props || props.length === 0) {
+      throw new Error('props must have a length of at least 1');
+    }
+  }
+}
+
+// export type Expression = {
+//   prop: string;
+//   event?: string;
+// };
+
 
 /**
  * Find a matching expression model and add a target within that model for the node
@@ -79,9 +118,8 @@ const toExpression = (s: string): Expression => {
  */
 const registerTarget = (models: ParseModel[], expression: Expression, opts: RegisterOpts): string => {
   const em = getOrCreateModel(models, expression);
-  const baseName = expression.event ? `${expression.prop}_${expression.event}` : expression.prop;
   const t: Target = merge({}, opts, {
-    id: `${baseName}_${em.targets.length}`,
+    id: expression.domId(em.targets.length),
     event: expression.event
   });
   em.targets.push(t);
@@ -96,14 +134,15 @@ const walk = (node: Node, outNode: HTMLElement, acc: ParseModel[]): ParseModel[]
   if (node) {
     const { childNodes } = node;
 
-    if (childNodes.length === 0) {
+    console.log('childNodes:', childNodes);
+    if (!childNodes || childNodes.length === 0) {
       return acc;
     } else {
 
       return [].reduce.call(childNodes, (acc: ParseModel[], n) => {
         if (n.nodeType === NodeType.TEXT_NODE) {
           const out = n.textContent.replace(/\[\[(.*?)\]\]/g, function (match, raw: string) {
-            const expression = toExpression(raw);
+            const expression = Expression.build(raw);
             const targetId = registerTarget(acc, expression, { type: 'text', bind: BindType.ONE_WAY });
             return `<span bindi-id="${targetId}"></span>`;
           });
@@ -116,7 +155,7 @@ const walk = (node: Node, outNode: HTMLElement, acc: ParseModel[]): ParseModel[]
             var a = nn.attributes[i];
             if (a.value.indexOf('{{') === 0 && a.value.indexOf('}}') === a.value.length - 2) {
               const raw: string = a.value.match(/^{{(.*?)}}$/)[1];
-              const expression = toExpression(raw);
+              const expression = Expression.build(raw);
               const targetId = registerTarget(acc, expression, { type: 'prop', propName: a.name, bind: BindType.TWO_WAY });
               nn.removeAttribute(a.name);
               nn.setAttribute('bindi-id', targetId);

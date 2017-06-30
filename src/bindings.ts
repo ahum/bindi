@@ -1,5 +1,7 @@
 import { Expression, Target } from './parse';
 
+import { get as nestedGet } from './nested-accessor';
+
 export type OnChange = (v: any, el: TargetedBinding) => void;
 
 export class TargetedBinding {
@@ -8,7 +10,7 @@ export class TargetedBinding {
 
   constructor(
     readonly el: HTMLElement,
-    readonly expression: string,
+    readonly expression: Expression,
     readonly target: Target,
     readonly onChange: OnChange) {
 
@@ -45,7 +47,7 @@ export class ExpressionBindings {
   private targetedBindings: any[];
   private value;
 
-  constructor(readonly el: HTMLElement, readonly expression: string, readonly targets: Target[]) {
+  constructor(readonly el: HTMLElement, readonly expression: Expression, readonly targets: Target[]) {
     this.targetedBindings = targets
       .map(t => new TargetedBinding(el, expression, t, this.onChange));
   }
@@ -78,12 +80,21 @@ export class ExpressionBindings {
     /**
      * define a setter for `expression` that calls .set on the targeted bindings
      */
-    Object.defineProperty(el, expression, {
+    Object.defineProperty(el, expression.root, {
       set: function (v) {
         that.value = v;
-        that.targetedBindings.forEach(t => {
-          t.set(v);
-        });
+        if (!expression.nested) {
+          that.targetedBindings.forEach(t => {
+            t.set(v);
+          });
+        } else {
+          const nestedValue = nestedGet(v, expression.rest);
+          if (nestedValue) {
+            that.targetedBindings.forEach(t => {
+              t.set(nestedValue);
+            });
+          }
+        }
       },
       get: function () {
         return that.value;

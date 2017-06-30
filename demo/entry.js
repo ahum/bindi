@@ -25,6 +25,9 @@ const init = () => {
     .then(() => {
       const el = document.querySelector('my-el');
 
+      el.user = {
+        name: 'ed'
+      };
 
       el.name = 'ed';
       el.surname = 'eustace';
