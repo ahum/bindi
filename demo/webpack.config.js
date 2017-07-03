@@ -1,5 +1,6 @@
 const path = require('path');
 const { CheckerPlugin } = require('awesome-typescript-loader')
+const webpack = require('webpack');
 
 module.exports = {
   devtool: 'source-map',
@@ -22,6 +23,9 @@ module.exports = {
     extensions: ['.ts', '.js']
   },
   plugins: [
-    new CheckerPlugin()
+    new CheckerPlugin(),
+    new webpack.DefinePlugin({
+      BINDI_DEBUG: true
+    })
   ]
 }

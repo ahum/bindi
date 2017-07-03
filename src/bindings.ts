@@ -1,6 +1,10 @@
 import { Expression, Target } from './parse';
 import { get as nestedGet, set as nestedSet } from './nested-accessor';
 
+import getLogger from './log';
+
+const logger = getLogger('bindings');
+
 export type OnChange = (v: any, src: Target) => void;
 
 export class TargetedBinding {
@@ -17,7 +21,7 @@ export class TargetedBinding {
   }
 
   eventHandler(e: Event) {
-    console.log('[TargetedBinding] eventHandler: ', e.type);
+    logger.log('[TargetedBinding] eventHandler: ', e.type);
     const newValue = e.target[(this.target as any).propName];
     this.onChange(newValue, this.target);
   }
@@ -34,7 +38,7 @@ export class TargetedBinding {
     } else if (type === 'prop') {
       node[(this.target as any).propName] = v;
       const eventName = event ? event : `${(this.target as any).propName}-changed`;
-      console.log('listen for: ', eventName, node);
+      logger.log('listen for: ', eventName, node);
       node.addEventListener(eventName, this.bound);
     }
 
@@ -62,7 +66,7 @@ export class PathGroup {
     const tb = new TargetedBinding(this.root, expression, target, this.onChange);
 
     this.bindings.push({ target: tb, expression });
-    console.log('this.bindings: ', this.bindings);
+    logger.log('this.bindings: ', this.bindings);
   }
 
   set(value: any): void {
@@ -77,33 +81,13 @@ export class PathGroup {
   }
 
   onChange(newValue: any, src: Target) {
-    console.log('[PathGroup] onChange: ', newValue, src);
+    logger.log('[PathGroup] onChange: ', newValue, src);
     const remainder = this.bindings.filter(({ target }) => target.target.id !== src.id);
 
-    console.log('remainder: ', remainder);
+    logger.log('remainder: ', remainder);
     remainder.forEach(t => t.target.set(newValue));
 
     this.pathChange(this.path, newValue);
-
-    //1. update related path bindings
-    //2. notify parent of path change
-
-    /*this.value = newValue;
- 
-    const eventType = `${this.expression}-changed`;
- 
- 
-    const remainder = this.targetedBindings.filter(tb => tb !== binding);
- 
-    remainder.forEach(t => t.set(this.value));
- 
-    const opts: any = {
-      bubbles: true,
-      composed: true
-    };
-    //TODO: this should not be automatically dispatched.
-    this.el.dispatchEvent(new CustomEvent(eventType, opts));
-    */
   }
 }
 
@@ -128,7 +112,7 @@ export class BindingGroup {
 
   onPathChange(path: string, value: any): void {
 
-    console.log('[onPathChange]', this.elementRoot, path, value);
+    logger.log('[onPathChange]', this.elementRoot, path, value);
 
     if (path.indexOf('.') === -1) {
       this.value = value;
@@ -139,11 +123,11 @@ export class BindingGroup {
       nestedSet(this.value, arr.join('.'), value);
     }
 
-    console.log('this.value: ', this.value);
+    logger.log('this.value: ', this.value);
 
     const eventType = `${this.root}-changed`;
 
-    console.log('eventType', eventType);
+    logger.log('eventType', eventType);
     const opts: any = {
       bubbles: true,
       composed: true

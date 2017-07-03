@@ -1,6 +1,10 @@
 import * as merge from 'lodash/merge';
 import * as models from './models';
 
+import getLogger from './log';
+
+const logger = getLogger('parse');
+
 export type RegisterTarget = (m: ParseModel[], e: string, opts: RegisterOpts) => string;
 
 
@@ -62,7 +66,7 @@ export interface ParseModel {
 export class Expression {
   static build(raw: string): Expression {
     const props = (s: string): string[] => s.split('.');
-    console.log('[toExpression]', raw);
+    logger.log('[toExpression]', raw);
     if (raw.indexOf('::') !== -1) {
       const [p, event] = raw.split('::');
       return new Expression(props(p), event);
@@ -143,7 +147,7 @@ const walk = (node: Node, outNode: HTMLElement, acc: ParseModel[]): ParseModel[]
   if (node) {
     const { childNodes } = node;
 
-    console.log('childNodes:', childNodes);
+    logger.log('childNodes:', childNodes);
     if (!childNodes || childNodes.length === 0) {
       return acc;
     } else {
