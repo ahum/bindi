@@ -17,33 +17,24 @@ const stringToColour = function (str) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
   var colour = '#';
-  for (var i = 0; i < 3; i++) {
+  for (var z = 0; z < 3; z++) {
     // tslint:disable-next-line:no-bitwise
-    var value = (hash >> (i * 8)) & 0xFF;
+    var value = (hash >> (z * 8)) & 0xFF;
     colour += ('00' + value.toString(16)).substr(-2);
   }
   return colour;
 };
-
-
 
 const nullLogger = new NullLogger();
 
 export class ConsoleLogger implements Logger {
   constructor(private name: string) { }
 
-  async log(...args: any[]): void {
+  log(...args: any[]): void {
     // tslint:disable-next-line:no-string-literal
     if (typeof window['console'] !== 'undefined') {
       const color = `${stringToColour(`bindi:${this.name}`)}`;
-
-      // const Color = await import('color');
-      // tslint:disable-next-line:no-bitwise
-      const complement = `white`;
-
-
-      console.log('color: ', color, complement);
-      return console.log(`%c[bindi:${this.name}]`, `color: ${color}; padding: 1px; background-color:${complement}`, ...args);
+      return console.log(`%c[bindi:${this.name}]`, `color: ${color}; padding: 1px`, ...args);
     }
   }
 }

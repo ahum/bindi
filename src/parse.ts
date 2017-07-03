@@ -1,5 +1,6 @@
 import * as merge from 'lodash/merge';
 import * as models from './models';
+import * as mustache from 'mustache';
 
 import getLogger from './log';
 
@@ -37,31 +38,11 @@ export interface ParseModel {
   target: Target;
 }
 
-
-/**
- * models: [ {root: 'foo', targets: [{path: 'foo.bar', }]}]
- */
 /**
  * Find an existing model or create one
  * @param models
  * @param expression
  */
-// const getOrCreateModel = (models: ParseModel[], expression: Expression): ParseModel => {
-//   const existing = models.find(m => m.expression.raw === expression.raw);
-
-//   if (existing) {
-//     return existing;
-//   } else {
-
-//     const newModel = {
-//       expression,
-//       targets: []
-//     };
-
-//     models.push(newModel);
-//     return newModel;
-//   }
-// };
 
 export class Expression {
   static build(raw: string): Expression {
@@ -111,12 +92,6 @@ export class Expression {
   }
 }
 
-// export type Expression = {
-//   prop: string;
-//   event?: string;
-// };
-
-
 /**
  * Find a matching expression model and add a target within that model for the node
  * @param models the models
@@ -145,6 +120,8 @@ enum NodeType {
 const walk = (node: Node, outNode: HTMLElement, acc: ParseModel[]): ParseModel[] => {
 
   if (node) {
+
+
     const { childNodes } = node;
 
     logger.log('childNodes:', childNodes);
@@ -159,6 +136,9 @@ const walk = (node: Node, outNode: HTMLElement, acc: ParseModel[]): ParseModel[]
             const targetId = registerTarget(acc, expression, { type: 'text', bind: BindType.ONE_WAY });
             return `<span bindi-id="${targetId}"></span>`;
           });
+          console.log('n.textContent', n.textContent);
+          console.log('out:', out);
+
           outNode.innerHTML += out;
           return acc;
         } else {
