@@ -1,8 +1,7 @@
 import * as merge from 'lodash/merge';
 
+import { BindingGroup, ExpressionBindings } from './bindings';
 import parse, { ParseModel, Target } from './parse';
-
-import { ExpressionBindings } from './bindings';
 
 export default function (
   rawMarkup: string,
@@ -14,11 +13,23 @@ export default function (
 
 
   //2. convert models into bindings
-  const bindings = models.map(b => {
-    const { expression, targets } = b;
-    const eb = new ExpressionBindings(el, expression, targets);
-    eb.init();
-  });
+  // {expression, target}
+  const bindings = models.reduce<BindingGroup[]>((acc, pm: ParseModel) => {
+    // const { expression, target } = b;
+    // const eb = new ExpressionBindings(el, expression, targets);
+    // eb.init();
+    let group = acc.find(e => e.root === pm.expression.root);
+    if (!group) {
+      group = new BindingGroup(el, pm.expression.root);
+      acc.push(group);
+    }
+    group.addBinding(pm.target, pm.expression);
+    return acc;
+  }, []);
+
+  bindings.forEach(b => b.init());
+
+  console.log('bindings: ', bindings);
 
   return { markup, models };
 }

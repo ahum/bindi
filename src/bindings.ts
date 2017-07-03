@@ -43,6 +43,69 @@ export class TargetedBinding {
   }
 }
 
+export class PathGroup {
+
+  readonly bindings: { target: TargetedBinding, expression: Expression }[] = [];
+
+  constructor(readonly root: HTMLElement, readonly path: string) { }
+
+  addBinding(target: Target, expression: Expression): void {
+
+    const tb = new TargetedBinding(this.root, expression, target, () => {
+      console.log('onChange .. todo..');
+    });
+
+    this.bindings.push({ target: tb, expression });
+    console.log('this.bindings: ', this.bindings);
+  }
+
+  set(value: any): void {
+    this.bindings.forEach(({ target, expression }) => {
+      if (expression.nested) {
+        const v = nestedGet(value, expression.rest);
+        target.set(v);
+      } else {
+        target.set(value);
+      }
+    });
+  }
+}
+
+export class BindingGroup {
+
+  private paths: PathGroup[] = [];
+
+  private value: any;
+
+  constructor(readonly elementRoot: HTMLElement, readonly root: string) { }
+
+  addBinding(target: Target, expression: Expression): void {
+    let p = this.paths.find(p => p.path === expression.raw);
+    if (!p) {
+      p = new PathGroup(this.elementRoot, expression.raw);
+      this.paths.push(p);
+    }
+    p.addBinding(target, expression);
+  }
+
+  init(): void {
+    const that = this;
+    Object.defineProperty(this.elementRoot, this.root, {
+      set: function (v) {
+        that.value = v;
+
+        that.paths.forEach(pg => {
+          pg.set(that.value);
+        });
+
+      },
+      get: function () {
+        return that.value;
+      }
+    });
+  }
+}
+
 export class ExpressionBindings {
   private targetedBindings: any[];
   private value;

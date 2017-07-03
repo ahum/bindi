@@ -30,30 +30,34 @@ export interface PropTarget extends Target {
 
 export interface ParseModel {
   expression: Expression;
-  targets: Target[];
+  target: Target;
 }
 
+
+/**
+ * models: [ {root: 'foo', targets: [{path: 'foo.bar', }]}]
+ */
 /**
  * Find an existing model or create one
  * @param models
  * @param expression
  */
-const getOrCreateModel = (models: ParseModel[], expression: Expression): ParseModel => {
-  const existing = models.find(m => m.expression.raw === expression.raw);
+// const getOrCreateModel = (models: ParseModel[], expression: Expression): ParseModel => {
+//   const existing = models.find(m => m.expression.raw === expression.raw);
 
-  if (existing) {
-    return existing;
-  } else {
+//   if (existing) {
+//     return existing;
+//   } else {
 
-    const newModel = {
-      expression,
-      targets: []
-    };
+//     const newModel = {
+//       expression,
+//       targets: []
+//     };
 
-    models.push(newModel);
-    return newModel;
-  }
-};
+//     models.push(newModel);
+//     return newModel;
+//   }
+// };
 
 export class Expression {
   static build(raw: string): Expression {
@@ -117,14 +121,19 @@ export class Expression {
  * @return string the uid for the binding
  */
 const registerTarget = (models: ParseModel[], expression: Expression, opts: RegisterOpts): string => {
-  const em = getOrCreateModel(models, expression);
-  const t: Target = merge({}, opts, {
-    id: expression.domId(em.targets.length),
+  const target: Target = merge({}, opts, {
+    id: expression.domId(models.length),
     event: expression.event
   });
-  em.targets.push(t);
-  return t.id;
+
+  models.push({
+    expression,
+    target
+  });
+
+  return target.id;
 };
+
 enum NodeType {
   TEXT_NODE = 3
 }
