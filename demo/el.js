@@ -45,6 +45,7 @@ export class UserEditor extends HTMLElement {
       {{#employees}}
         <h1>{{index}} -> {{item.name}}</h1>
       {{/employees}}
+       <h1>[[user.name]] [[user.surname]]</h1>
      </div>`, this);
  */
 export default class El extends HTMLElement {
@@ -52,7 +53,9 @@ export default class El extends HTMLElement {
   constructor() {
     super();
     let sr = this.attachShadow({ mode: 'open' });
-    const { bindings, markup } = bindi(`{{#employees}} {{item.name}} {{/employees}}`, this);
+    const { bindings, markup } = bindi(`
+       <user-editor user="{{user}}"></user-editor>
+    `, this);
     sr.innerHTML = markup;
   }
 }

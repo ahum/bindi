@@ -1,0 +1,32 @@
+Content =
+  (Element / Text)*
+
+Element =
+  startTag:StartTag content:Content endTag:EndTag {
+    if (startTag.name != endTag) {
+      throw new Error(
+        "Expected </" + startTag + "> but </" + endTag + "> found."
+      );
+    }
+
+    return {
+      tag:    startTag.name,
+      attributes: startTag.attr,
+      content: content
+    };
+  }
+
+StartTag =
+  "<" name:TagName attr:(space attr)? space? ">" { return {name: name,attr: attr}; }
+
+space 
+  = ' ' { return undefined }
+  
+attr
+  = label:[a-z]* '="' value:[a-z]* "\"" { return {label: label.join(''), value: value.join('')} }
+  
+EndTag =
+  "</" name:TagName ">" { return name; }
+
+TagName = chars:[a-z]+ { return chars.join(""); }
+Text    = chars:[^<]+  { return chars.join(""); }

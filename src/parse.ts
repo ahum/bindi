@@ -4,7 +4,12 @@ import * as mustache from 'mustache';
 
 import getLogger from './log';
 
+// import * as parser from './grammar.pegjs';
+
+
 const logger = getLogger('parse');
+
+const pegParser = require('./grammar.pegjs');
 
 export type RegisterTarget = (m: ParseModel[], e: string, opts: RegisterOpts) => string;
 
@@ -119,6 +124,7 @@ enum NodeType {
 
 const walk = (node: Node, outNode: HTMLElement, acc: ParseModel[]): ParseModel[] => {
 
+
   if (node) {
 
 
@@ -167,9 +173,12 @@ const walk = (node: Node, outNode: HTMLElement, acc: ParseModel[]): ParseModel[]
 const parser = new DOMParser();
 
 export default function (raw: string): { models: ParseModel[], markup: string } {
+  logger.log('parser: ', pegParser);
+  const result = pegParser.parse(raw);
+  console.log('result:', result);
+  return null;
   /**
    * note: we use the DOMParser so when parsing we're not instantiating the custom element definitions.
-   */
   const doc = parser.parseFromString(`<div id="bindi-root">${raw}</div>`, 'text/html');
   const out = parser.parseFromString('', 'text/html');
 
@@ -181,4 +190,5 @@ export default function (raw: string): { models: ParseModel[], markup: string } 
     markup: outRoot.innerHTML,
     models
   };
+   */
 }

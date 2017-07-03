@@ -15,6 +15,13 @@ module.exports = {
       {
         test: /\.ts$/,
         loader: 'awesome-typescript-loader'
+      },
+      {
+        test: /\.pegjs$/,
+        loader: 'pegjs-loader',
+        options: {
+          trace: true
+        }
       }
     ]
   },
