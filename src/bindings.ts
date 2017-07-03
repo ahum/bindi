@@ -1,8 +1,7 @@
 import { Expression, Target } from './parse';
+import { get as nestedGet, set as nestedSet } from './nested-accessor';
 
-import { get as nestedGet } from './nested-accessor';
-
-export type OnChange = (v: any, el: TargetedBinding) => void;
+export type OnChange = (v: any, src: Target) => void;
 
 export class TargetedBinding {
 
@@ -18,8 +17,9 @@ export class TargetedBinding {
   }
 
   eventHandler(e: Event) {
+    console.log('[TargetedBinding] eventHandler: ', e.type);
     const newValue = e.target[(this.target as any).propName];
-    this.onChange(newValue, this);
+    this.onChange(newValue, this.target);
   }
 
   set(v) {
@@ -34,6 +34,7 @@ export class TargetedBinding {
     } else if (type === 'prop') {
       node[(this.target as any).propName] = v;
       const eventName = event ? event : `${(this.target as any).propName}-changed`;
+      console.log('listen for: ', eventName, node);
       node.addEventListener(eventName, this.bound);
     }
 
@@ -43,17 +44,22 @@ export class TargetedBinding {
   }
 }
 
+export type PathChange = (path: string, value: any) => void;
+
 export class PathGroup {
 
   readonly bindings: { target: TargetedBinding, expression: Expression }[] = [];
 
-  constructor(readonly root: HTMLElement, readonly path: string) { }
+  constructor(
+    readonly root: HTMLElement,
+    readonly path: string,
+    private pathChange: PathChange) {
+    this.onChange = this.onChange.bind(this);
+  }
 
   addBinding(target: Target, expression: Expression): void {
 
-    const tb = new TargetedBinding(this.root, expression, target, () => {
-      console.log('onChange .. todo..');
-    });
+    const tb = new TargetedBinding(this.root, expression, target, this.onChange);
 
     this.bindings.push({ target: tb, expression });
     console.log('this.bindings: ', this.bindings);
@@ -69,6 +75,36 @@ export class PathGroup {
       }
     });
   }
+
+  onChange(newValue: any, src: Target) {
+    console.log('[PathGroup] onChange: ', newValue, src);
+    const remainder = this.bindings.filter(({ target }) => target.target.id !== src.id);
+
+    console.log('remainder: ', remainder);
+    remainder.forEach(t => t.target.set(newValue));
+
+    this.pathChange(this.path, newValue);
+
+    //1. update related path bindings
+    //2. notify parent of path change
+
+    /*this.value = newValue;
+ 
+    const eventType = `${this.expression}-changed`;
+ 
+ 
+    const remainder = this.targetedBindings.filter(tb => tb !== binding);
+ 
+    remainder.forEach(t => t.set(this.value));
+ 
+    const opts: any = {
+      bubbles: true,
+      composed: true
+    };
+    //TODO: this should not be automatically dispatched.
+    this.el.dispatchEvent(new CustomEvent(eventType, opts));
+    */
+  }
 }
 
 export class BindingGroup {
@@ -77,15 +113,44 @@ export class BindingGroup {
 
   private value: any;
 
-  constructor(readonly elementRoot: HTMLElement, readonly root: string) { }
+  constructor(readonly elementRoot: HTMLElement, readonly root: string) {
+    this.onPathChange = this.onPathChange.bind(this);
+  }
 
   addBinding(target: Target, expression: Expression): void {
     let p = this.paths.find(p => p.path === expression.raw);
     if (!p) {
-      p = new PathGroup(this.elementRoot, expression.raw);
+      p = new PathGroup(this.elementRoot, expression.raw, this.onPathChange);
       this.paths.push(p);
     }
     p.addBinding(target, expression);
+  }
+
+  onPathChange(path: string, value: any): void {
+
+    console.log('[onPathChange]', this.elementRoot, path, value);
+
+    if (path.indexOf('.') === -1) {
+      this.value = value;
+      this.paths.forEach(pg => pg.set(this.value));
+    } else {
+      const arr = path.split('.');
+      arr.shift();
+      nestedSet(this.value, arr.join('.'), value);
+    }
+
+    console.log('this.value: ', this.value);
+
+    const eventType = `${this.root}-changed`;
+
+    console.log('eventType', eventType);
+    const opts: any = {
+      bubbles: true,
+      composed: true
+    };
+
+    //TODO: this should not be automatically dispatched.
+    this.elementRoot.dispatchEvent(new CustomEvent(eventType, opts));
   }
 
   init(): void {

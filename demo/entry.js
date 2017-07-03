@@ -1,9 +1,10 @@
-import El, { ChildEl } from './el';
+import El, { ChildEl, UserEditor } from './el';
 
 import observe from '../src/observe';
 
 customElements.define('my-el', El);
 customElements.define('child-el', ChildEl);
+customElements.define('user-editor', UserEditor);
 
 
 const user = {
@@ -26,14 +27,10 @@ const init = () => {
       const el = document.querySelector('my-el');
 
       el.user = {
-        name: 'ed'
+        name: 'ed',
+        surname: 'eustace'
       };
-
-      el.name = 'ed';
-      el.surname = 'eustace';
-      el.foo = 'foo';
     });
-
 }
 
 if (document.readyState === 'ready') {

@@ -4,7 +4,7 @@ export class ChildEl extends HTMLElement {
   constructor() {
     super();
     let sr = this.attachShadow({ mode: 'open' });
-    console.log('[ChildEl] call bindi...');
+
     const { bindings, markup } = bindi(`<style>
       :host{
         background-color: mistyrose;
@@ -13,6 +13,33 @@ export class ChildEl extends HTMLElement {
       }
     </style>[[name]]
     <input type="text" value="{{name::input}}"></input>`, this, ['name']);
+    sr.innerHTML = markup;
+  }
+}
+/**
+ * 
+    <label>
+      surname: 
+      <input type="text" value="{{surname::input}}"></input>
+    </label>
+ */
+export class UserEditor extends HTMLElement {
+  constructor() {
+    super();
+    let sr = this.attachShadow({ mode: 'open' });
+    const { bindings, markup } = bindi(`
+    <label>
+      name: 
+      <input type="text" value="{{user.name::input}}"></input>
+      </label>
+      <br/>
+    <label>surname:
+      <input type="text" value="{{user.surname::input}}"></input>
+    </label>
+    <br/>
+    <br/>`,
+      this, []);
+
     sr.innerHTML = markup;
   }
 }
@@ -26,6 +53,18 @@ name-changed
 <div style="color: red;">red: [[foo]]</div>
 <span style="color:blue;">blue: [[foo]]</span>
 <child-el name="{{foo}}"></child-el>
+
+
+    const { bindings, markup } = bindi(`<div>
+      <h1>[[user.name]] [[user.surname]]</h1>
+      <h2>[[user.name]] [[user.surname]]</h2>
+     [[foo]]
+     <div style="color: red;">red: [[foo]]</div>
+     <span style="color:blue;">blue: [[foo]]</span>
+     <child-el name="{{foo}}"></child-el>
+     </div>
+    `, this);
+
 -->*/
 export default class El extends HTMLElement {
 
@@ -33,8 +72,9 @@ export default class El extends HTMLElement {
     super();
     let sr = this.attachShadow({ mode: 'open' });
     const { bindings, markup } = bindi(`<div>
-      <h1>[[user.name]]</h1>
-    </div>
+      <h1>[[user.name]] [[user.surname]]</h1>
+      <user-editor user="{{user}}"></user-editor>
+     </div>
     `, this);
     sr.innerHTML = markup;
   }
