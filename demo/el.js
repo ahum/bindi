@@ -11,12 +11,21 @@ export class ChildEl extends HTMLElement {
         padding: 10px;
         display: block;
       }
-    </style>[[name]]
+    </style>
+    [[name]]
     <input type="text" value="{{name::input}}"></input>`, this, ['name']);
     sr.innerHTML = markup;
   }
 }
-
+/**
+ * 
+      <br/>
+    <label>surname:
+      <child-el name="{{user.surname}}"></child-el>
+    </label>
+    <br/>
+    <br/>`,
+ */
 export class UserEditor extends HTMLElement {
   constructor() {
     super();
@@ -31,7 +40,7 @@ export class UserEditor extends HTMLElement {
       <child-el name="{{user.surname}}"></child-el>
     </label>
     <br/>
-    <br/>`,
+      `,
       this, []);
 
     sr.innerHTML = markup;
@@ -46,16 +55,41 @@ export class UserEditor extends HTMLElement {
         <h1>{{index}} -> {{item.name}}</h1>
       {{/employees}}
        <h1>[[user.name]] [[user.surname]]</h1>
+       <user-editor user="{{user}}"></user-editor>
      </div>`, this);
  */
+
+export class DomRepeat extends HTMLElement {
+
+  constructor() {
+    super();
+    console.log('this.innerHTML:', this.innerHTML);
+    this.template = this.querySelector('template').innerHTML;
+
+  }
+
+  set items(i) {
+    this._items = i;
+    console.log('this.items: ', this._items);
+    this._items.forEach((i, index) => {
+      this.innerHTML += this.template.replace('[[item]]', i).replace('[[index]]', index);
+    });
+  }
+}
+
 export default class El extends HTMLElement {
 
   constructor() {
     super();
     let sr = this.attachShadow({ mode: 'open' });
     const { bindings, markup } = bindi(`
-       <h1>{{user.name}} {{user.surname}}</h1>
+       <h1>[[user.name]] [[user.surname]]</h1>
        <user-editor user="{{user}}"></user-editor>
+       <dom-repeat items="{{names}}">
+         <template>
+           <h1>[[item]][[index]]</h1>
+         </template>
+       </dom-repeat>
     `, this);
     sr.innerHTML = markup;
   }

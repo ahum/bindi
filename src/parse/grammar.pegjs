@@ -15,6 +15,20 @@ Element =
       propertyBindings: startTag.propertyBindings,
       children
     };
+  } / startTag:SelfTag {
+    return {
+      name: startTag.name,
+      attributes: startTag.attributes,
+      selfClosing: true
+    }
+  }
+
+SelfTag = 
+  '<' name:TagName Space? attributes:Attribute* Space? '/>' {
+    return {
+      name,
+      attributes
+    }
   }
 
 StartTag =
@@ -85,5 +99,5 @@ TagName =
 _ 'whitespace' = 
   [ \t\n\r]*
   
-Text = 
-  chars:[^\[<{]+ _? { return chars.join('') }
+Text 'regular-text' = 
+  chars:[^\[<]+ _? { return chars.join('') }

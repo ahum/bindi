@@ -12,7 +12,7 @@ let pegParser;
 try {
   pegParser = require('./grammar.pegjs');
 } catch (e) {
-  pegParser = require('./grammar');
+  //pegParser = require('./grammar');
 }
 
 /**
@@ -30,8 +30,9 @@ export type RegisterOpts = {
 };
 
 export interface Target {
-  type: string;
+  type: BindType;
   id: string;
+  prop: string;
   event?: string;
 }
 
@@ -119,15 +120,23 @@ export type PropertyBinding = {
   type: BindType;
 };
 
-export type ParseNode = {
+export type SelfClosingTag = {
+  attributes: Attribute[],
+  name: string
+  selfClosing?: boolean;
+};
+
+export type Tag = {
   attributes: Attribute[],
   propertyBindings: PropertyBinding[];
   name: string,
   children: Entry[]
 };
 
-export type Entry = string | ParseNode | OneWayBinding;
+export type Entry = string | Tag | SelfClosingTag | OneWayBinding;
 
 export default function (raw: string): Entry[] {
-  return pegParser.parse(raw);
+  const result = pegParser.parse(raw);
+  console.log('result: ', result);
+  return result;
 }

@@ -1,11 +1,11 @@
-import El, { ChildEl, UserEditor } from './el';
+import El, { ChildEl, DomRepeat, UserEditor } from './el';
 
 import observe from '../src/observe';
 
 customElements.define('my-el', El);
 customElements.define('child-el', ChildEl);
 customElements.define('user-editor', UserEditor);
-
+customElements.define('dom-repeat', DomRepeat);
 
 const user = {
   name: 'ed'
@@ -25,6 +25,9 @@ const init = () => {
   customElements.whenDefined('my-el')
     .then(() => {
       const el = document.querySelector('my-el');
+      el.names = [
+        'ed', 'fiona', 'ervin'
+      ];
 
       el.user = {
         name: 'ed',

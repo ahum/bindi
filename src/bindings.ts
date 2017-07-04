@@ -1,4 +1,4 @@
-import { Expression, Target } from './parse';
+import { BindType, Expression, Target } from './parse';
 import { get as nestedGet, set as nestedSet } from './nested-accessor';
 
 import getLogger from './log';
@@ -22,28 +22,19 @@ export class TargetedBinding {
 
   eventHandler(e: Event) {
     logger.log('[TargetedBinding] eventHandler: ', e.type);
-    const newValue = e.target[(this.target as any).propName];
+    const newValue = e.target[this.target.prop];
     this.onChange(newValue, this.target);
   }
 
   set(v) {
-    const { id, type, event } = this.target;
+    const { id, type, event, prop } = this.target;
     const node = this.el.shadowRoot.querySelector(`[bindi-id="${id}"]`);
 
-    if (type === 'text') {
-      node.textContent = v;
-    } else if (type === 'attribute') {
-      //node.setAttribute((this.target as any).attr, v);
-      //TODO
-    } else if (type === 'prop') {
-      node[(this.target as any).propName] = v;
-      const eventName = event ? event : `${(this.target as any).propName}-changed`;
-      logger.log('listen for: ', eventName, node);
-      node.addEventListener(eventName, this.bound);
-    }
+    node[prop] = v;
 
-    if (event) {
-      node.addEventListener(event, this.bound);
+    if (type === BindType.TWO_WAY) {
+      const eventName = event ? event : `${prop}-changed`;
+      node.addEventListener(eventName, this.bound);
     }
   }
 }

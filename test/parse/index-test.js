@@ -9,6 +9,21 @@ describe('parse', () => {
     });
   }
 
+  it('parses style nodes', () => {
+
+    const body = ` 
+      :host {
+        background-color: mistyrose;
+        padding: 10px;
+        display: block;
+      }`;
+
+    const o = parse.default(`<style>${body}</style>`);
+    expect(o[0].children[0]).to.eql(body);
+  });
+
+  assertParse('<br/>', [{ name: 'br', attributes: [], selfClosing: true }]);
+
   assertParse('<div></div>', [{ name: 'div', attributes: [], propertyBindings: [], children: [] }]);
 
   assertParse('hi<div></div>', ['hi', { name: 'div', attributes: [], propertyBindings: [], children: [] }]);
