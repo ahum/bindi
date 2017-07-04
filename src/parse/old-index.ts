@@ -1,15 +1,14 @@
 import * as merge from 'lodash/merge';
-import * as models from './models';
+import * as models from '../models';
 import * as mustache from 'mustache';
 
-import getLogger from './log';
+import getLogger from '../log';
 
 // import * as parser from './grammar.pegjs';
 
 
 const logger = getLogger('parse');
 
-const pegParser = require('./grammar.pegjs');
 
 export type RegisterTarget = (m: ParseModel[], e: string, opts: RegisterOpts) => string;
 
@@ -172,10 +171,25 @@ const walk = (node: Node, outNode: HTMLElement, acc: ParseModel[]): ParseModel[]
 
 const parser = new DOMParser();
 
+type Binding = {
+  expr: string
+};
+
+type Attribute = {
+  label: string,
+  value: string | Binding
+};
+
+
+type ParseNode = {
+  attributes: Attribute[],
+  name: string,
+  children: Entry[]
+};
+
+type Entry = string | ParseNode;
+
 export default function (raw: string): { models: ParseModel[], markup: string } {
-  logger.log('parser: ', pegParser);
-  const result = pegParser.parse(raw);
-  console.log('result:', result);
   return null;
   /**
    * note: we use the DOMParser so when parsing we're not instantiating the custom element definitions.

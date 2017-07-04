@@ -9,6 +9,7 @@ const sourcemaps = require('gulp-sourcemaps');
 const tsProject = ts.createProject('tsconfig.json');
 const mocha = require('gulp-mocha');
 const releaseHelper = require('release-helper');
+const pegjs = require('gulp-pegjs');
 
 //TODO: Add releaseHelper.init(gulp); - once it works w/ gulp 4.0
 
@@ -25,7 +26,11 @@ gulp.task('live-test', () => {
 
 gulp.task('test', (done) => {
   return gulp.src('test/**/*.js', { read: false })
-    .pipe(mocha())
+    .pipe(mocha({
+      require: [
+        './test/setup'
+      ]
+    }))
     .once('error', (e) => {
       done(e);
       process.exit(1);
@@ -51,6 +56,12 @@ gulp.task('build', function () {
   let js = tsResult.js
     .pipe(sourcemaps.write())
     .pipe(gulp.dest('lib'));
+
+  let pjs = gulp.src('src/parse/grammar.pegjs')
+    .pipe(pegjs({
+      format: 'commonjs'
+    }))
+    .pipe(gulp.dest('lib/parse'));
 
   let dts = tsResult.dts
     .pipe(gulp.dest('lib'));

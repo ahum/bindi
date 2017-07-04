@@ -54,6 +54,7 @@ export default class El extends HTMLElement {
     super();
     let sr = this.attachShadow({ mode: 'open' });
     const { bindings, markup } = bindi(`
+       <h1>{{user.name}} {{user.surname}}</h1>
        <user-editor user="{{user}}"></user-editor>
     `, this);
     sr.innerHTML = markup;
