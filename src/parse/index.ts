@@ -98,7 +98,7 @@ export class Expression {
   }
 }
 
-export type Binding = {
+export type OneWayBinding = {
   expr: string
 };
 
@@ -107,9 +107,16 @@ export type Attribute = {
   value: string
 };
 
+/**
+ * foo="{{bar}}""
+ * TODO: add event:
+ * <input value="{{bar::input}}"></input>
+ */
 export type PropertyBinding = {
   prop: string;
   expr: string;
+  event?: string;
+  type: BindType;
 };
 
 export type ParseNode = {
@@ -119,7 +126,7 @@ export type ParseNode = {
   children: Entry[]
 };
 
-export type Entry = string | ParseNode | Binding;
+export type Entry = string | ParseNode | OneWayBinding;
 
 export default function (raw: string): Entry[] {
   return pegParser.parse(raw);

@@ -29,16 +29,18 @@ describe('parse', () => {
     ['hi',
       {
         name: 'div',
-        propertyBindings: [{ prop: 'a', expr: 'a' }],
+        propertyBindings: [{ prop: 'a', expr: 'a', type: 'two-way', event: undefined }],
         attributes: [], children: []
       }, 'there']);
-  assertParse('<div>hi {{a}} there</div>', [{
+
+  assertParse('<div>hi [[a]] there</div>', [{
     name: 'div',
     attributes: [],
     propertyBindings: [],
-    children: ['hi ', { type: 'binding', expr: 'a' }, ' there']
+    children: ['hi ', { expr: 'a', type: 'one-way' }, ' there']
   }]);
-  assertParse('<div>apple<a>banana{{a}}</a></div>', [
+
+  assertParse('<div>apple<a>banana[[a]]</a></div>', [
     {
       name: 'div',
       attributes: [],
@@ -51,7 +53,7 @@ describe('parse', () => {
           propertyBindings: [],
           children: [
             'banana',
-            { type: 'binding', expr: 'a' }
+            { type: 'one-way', expr: 'a' }
           ]
         }
       ]

@@ -1,5 +1,5 @@
 Children =
-  (Element / Text / Binding)*
+  (Element / Text / OneWayBinding)*
 
 Element =
   startTag:StartTag children:Children endTag:EndTag {
@@ -33,12 +33,18 @@ Space =
   ' '
   
 Attribute = 
-  label:[a-z]* '="' value:(Binding / StringValue) "\"" Space? { 
-    if(value.type && value.type === 'binding'){
-      return {
+  label:[a-z]* '="' value:(OneWayBinding / TwoWayBinding / StringValue) "\"" Space? { 
+    if(value.expr){
+      const out = {
         prop: label.join(''),
-        expr: value.expr
+        expr: value.expr,
+        type: value.type
       }
+      if(value.type === 'two-way') {
+        out.event = value.event;
+      }
+      return out;
+
     } else {
       return {
         label: label.join(''), 
@@ -46,11 +52,26 @@ Attribute =
     }
   }
 
-Binding = 
-  '{{' value:StringValue '}}' { return {type: 'binding', expr: value}}
+TwoWayBinding = 
+  '{{' value:StringValue '::'? event:StringValue? '}}' { 
+    const out = {
+      type: 'two-way', 
+      expr: value,
+    }
+    if(event && event !== '') {
+      out.event = event;
+    }
+
+    return out;
+  }
   
-Oneway = 
-  '[[' value:StringValue ']]' { return {type: 'one-way-binding', expr: value}}
+OneWayBinding = 
+  '[[' value:StringValue ']]' { 
+    return {
+      type: 'one-way', 
+      expr: value
+    }
+  }
 
 StringValue = 
   value:[a-z\.]* { return value.join('') }
@@ -65,4 +86,4 @@ _ 'whitespace' =
   [ \t\n\r]*
   
 Text = 
-  chars:[^<{]+ _? { return chars.join('') }
+  chars:[^\[<{]+ _? { return chars.join('') }

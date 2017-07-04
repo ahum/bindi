@@ -1,11 +1,11 @@
 import * as compact from 'lodash/compact';
 import * as groupBy from 'lodash/groupBy';
 
-import { Attribute, Binding, Entry, ParseNode } from './index';
+import { Attribute, Entry, OneWayBinding, ParseNode, PropertyBinding } from './index';
 
 const isString = (e: Entry): e is string => typeof e === 'string';
 const isParseNode = (e: Entry): e is ParseNode => (<ParseNode>e).name !== undefined;
-const isBinding = (e: Entry): e is Binding => (<Binding>e).expr !== undefined;
+const isBinding = (e: Entry): e is OneWayBinding => (<OneWayBinding>e).expr !== undefined;
 
 const mkSimpleAttribute = (a: Attribute): string => `${a.label}="${a.value}"`;
 
@@ -30,9 +30,9 @@ const mkTag = (pn: ParseNode, model: Model): Model => {
 
   const normal = compact([id].concat(pn.attributes));
   const attributes = normal.length === 0 ? '' : ' ' + normal.map(mkSimpleAttribute);
-  const m = markup(pn.children).markup;
-  const tag = `<${pn.name}${attributes}>${m}</${pn.name}>`;
-  model.markup += tag;
+  model.markup += `<${pn.name}${attributes}>`;
+  markup(pn.children, model);
+  model.markup += `</${pn.name}>`;
   return model;
 };
 
@@ -49,9 +49,11 @@ const buildModel = (acc: Model, e: Entry): Model => {
     acc.bindings.push({
       id,
       bindings: [
-        { prop: 'innerHTML', expr: e.expr }
+        { prop: 'innerHTML', expr: e.expr, type: 'one-way' }
       ]
     });
+
+    console.log('>> ', JSON.stringify(acc.bindings, null, '  '));
 
     return acc;
   } else {
