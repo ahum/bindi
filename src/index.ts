@@ -3,6 +3,35 @@ import * as merge from 'lodash/merge';
 import { BindingGroup, ExpressionBindings } from './bindings';
 import parse, { ParseModel, Target } from './parse';
 
+export function prepare(rawMarkup: string): { markup: string, bind: (el: HTMLElement) => void } {
+  //1. parse the markup looking for candidates
+  const { models, markup } = parse(rawMarkup);
+
+  return {
+    markup,
+    bind: (el: HTMLElement) => {
+      //2. convert models into bindings
+      // {expression, target}
+      const bindings = models.reduce<BindingGroup[]>((acc, pm: ParseModel) => {
+        // const { expression, target } = b;
+        // const eb = new ExpressionBindings(el, expression, targets);
+        // eb.init();
+        let group = acc.find(e => e.root === pm.expression.root);
+        if (!group) {
+          group = new BindingGroup(el, pm.expression.root);
+          acc.push(group);
+        }
+        group.addBinding(pm.target, pm.expression);
+        return acc;
+      }, []);
+
+      bindings.forEach(b => b.init());
+
+      return { markup, models };
+    }
+  };
+}
+
 export default function (
   rawMarkup: string,
   el: HTMLElement,
@@ -28,8 +57,6 @@ export default function (
   }, []);
 
   bindings.forEach(b => b.init());
-
-  console.log('bindings: ', bindings);
 
   return { markup, models };
 }

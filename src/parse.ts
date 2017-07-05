@@ -117,7 +117,7 @@ enum NodeType {
   TEXT_NODE = 3
 }
 
-const walk = (node: HTMLElement, outNode: HTMLElement, acc: ParseModel[]): ParseModel[] => {
+const walk = (node: Element, outNode: HTMLElement, acc: ParseModel[]): ParseModel[] => {
 
   if (node) {
 
@@ -142,8 +142,6 @@ const walk = (node: HTMLElement, outNode: HTMLElement, acc: ParseModel[]): Parse
               const targetId = registerTarget(acc, expression, { type: 'text', bind: BindType.ONE_WAY });
               return `<span bindi-id="${targetId}"></span>`;
             });
-            console.log('n.textContent', n.textContent);
-            console.log('out:', out);
 
             outNode.innerHTML += out;
             return acc;

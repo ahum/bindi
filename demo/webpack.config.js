@@ -25,7 +25,7 @@ module.exports = {
   plugins: [
     new CheckerPlugin(),
     new webpack.DefinePlugin({
-      BINDI_DEBUG: true
+      BINDI_DEBUG: false
     })
   ]
 }

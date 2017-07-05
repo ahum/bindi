@@ -1,72 +1,46 @@
-import bindi from '../src/index';
+import { prepare } from '../src/index';
 
-export class ChildEl extends HTMLElement {
-  constructor() {
-    super();
-    let sr = this.attachShadow({ mode: 'open' });
+const binding = prepare(`
+      <style> 
+        .header{
+          background-color: lightgrey;
+          padding: 1px;
+          padding-left: 10px;
+        }
+      </style>
+      <div class="header">
+        <h1>[[user.name]] [[user.surname]]</h1>
+      </div>
+      <user-editor user="{{user}}"></user-editor> 
+      <h3>Friends:</h3>
+      <dom-repeat items="{{friends}}"> 
+        <template>
+          <style>
+            :host{
+              display: flex;
+              align-items: center;
+            }
+            
+            .index{
+              display: block;
+              background-color: #ee99ff;
+              color:white;
+              border-radius: 2px;
+              padding: 2px;
+              margin: 4px;
+            }
+          </style>
+          <span class="index">[[index]]</span>[[item]]
+        </template>
+      </dom-repeat>
+    `);
 
-    const { bindings, markup } = bindi(`<style>
-      :host{
-        background-color: mistyrose;
-        padding: 10px;
-        display: block;
-      }
-    </style>[[name]]
-    <input type="text" value="{{name::input}}"></input>`, this, ['name']);
-    sr.innerHTML = markup;
-  }
-}
-
-export class UserEditor extends HTMLElement {
-  constructor() {
-    super();
-    let sr = this.attachShadow({ mode: 'open' });
-    const { bindings, markup } = bindi(`
-    <label>
-      name: 
-      <input type="text" value="{{user.name::input}}"></input>
-      </label>
-      <br/>
-    <label>surname:
-      <child-el name="{{user.surname}}"></child-el>
-    </label>
-    <br/>
-    <br/>`,
-      this, []);
-
-    sr.innerHTML = markup;
-  }
-}
-/**
- * 
-      // <h1>[[user.name]] [[user.surname]]</h1>
-      // <user-editor user="{{user}}"></user-editor>
-    const { bindings, markup } = bindi(`<div>
-      {{#employees}}
-        <h1>{{index}} -> {{item.name}}</h1>
-      {{/employees}}
-     </div>`, this);
- */
 export default class El extends HTMLElement {
 
   constructor() {
     super();
     let sr = this.attachShadow({ mode: 'open' });
-    const { bindings, markup } = bindi(`
-      <h1>[[user.name]] [[user.surname]]</h1>
-      <user-editor user="{{user}}"></user-editor> 
-      <dom-repeat items="{{names}}"> 
-        <template>
-          <h1>[[item]] [[index]]</h1>
-        </template>
-      </dom-repeat>
-    `, this);
-    sr.innerHTML = markup;
+    sr.innerHTML = binding.markup;
+    binding.bind(this);
   }
 }
-
-/**
- * <span bindi-id="employees_1"></span>
- * 
- * <template><h1>...</h1></template>
- */

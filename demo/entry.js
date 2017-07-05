@@ -1,25 +1,12 @@
-import El, { ChildEl, UserEditor } from './el';
-
-import observe from '../src/observe';
+import ChildEl from './child-el';
+import DomRepeat from './dom-repeat';
+import El from './el';
+import UserEditor from './user-editor';
 
 customElements.define('my-el', El);
 customElements.define('child-el', ChildEl);
 customElements.define('user-editor', UserEditor);
-
-
-const user = {
-  name: 'ed'
-}
-
-const observedUser = observe(user);
-
-console.log('>> ', observedUser, observedUser.isProxy);
-observedUser.onChange('name', (n) => {
-  console.log('new name...', n);
-  console.log('user.name:', user.name);
-});
-
-observedUser.name = 'joe';
+customElements.define('dom-repeat', DomRepeat);
 
 const init = () => {
   customElements.whenDefined('my-el')
@@ -27,9 +14,10 @@ const init = () => {
       const el = document.querySelector('my-el');
 
       el.user = {
-        name: 'ed',
-        surname: 'eustace'
+        name: 'charlie',
+        surname: 'brown'
       };
+      el.friends = ['linus', 'lucy', 'snoopy'];
     });
 }
 
