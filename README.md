@@ -1,6 +1,48 @@
 # bindi
 
-binding for custom elements
+binding for custom elements.
+
+This is an experimental library that provides data binding support for vanilla [v1 custom elements](https://developers.google.com/web/fundamentals/getting-started/primers/customelements).
+
+This means that you can write your custom elements as close to the standard, bindi just saves you some boilerplating.
+
+## why?
+
+Because the custom element v1 spec is pretty good and the only thing that was preventing me from using without any frameworks was the lack of data binding.
+
+So I thought 'if i could allow a way for data-binding to be defined, then convert that to logic belonging to the custom element that'd be great'.
+
+## how?
+
+`bindi` exposes a method `prepare` that takes markup like:
+```html
+<div>[[name]]</div>
+```
+and returns an object: `{markup, bind}`. the markup looks like: 
+```html
+<div><span bindi-id="0"></span></div>
+```
+you then call `bind` with your custom element: `bind(this)`, this will add a setter for `name` to your custom element, such that whenever it's set it'll update `[bindi-id="0"]` with the value.
+
+### a simple example
+
+```javascript
+import {prepare} from 'bindi';
+
+const binding = prepare(`<div>[[name]]</div>`);
+
+class MyEl extends HTMLElement{
+  constructor(){
+    super();
+    const sr = this.attachShadow({mode: 'open'});
+    sr.innerHTML = binding.markup;
+    binding.bind(this);
+  }
+}
+customElements.define('my-el', MyEl);
+
+document.querySelector('my-el').name = 'Ed';
+```
 
 ## install
 
@@ -9,6 +51,9 @@ npm install
 ```
 
 ## demo 
+
+The demo shows a few elements working together with changes travelling up and down the dom hierarchy.
+
 
 ```bash
 cd demo
@@ -20,8 +65,9 @@ cd demo
 ## supported bindings
 
 * single prop expression: `{{foo}}`
+* custom event names: `x="{{foo::input}}"`
 * nested prop expression: `{{foo.bar}}`
-* arrays? no
+* arrays? see `dom-repeat` in demo as a rough guess on how to achieve this. 
 * computed expressions? no
 
 Uses polymer convention of adding an event listener for a binding so: `<el foo="{{bar}}">` adds: 
