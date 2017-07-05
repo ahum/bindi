@@ -2,6 +2,8 @@
 
 binding for custom elements.
 
+[demo][demo]
+
 This is an experimental library that provides data binding support for vanilla [v1 custom elements][cev1]
 
 This means that you can write your custom elements as close to the standard, bindi just saves you some boilerplating.
@@ -91,5 +93,8 @@ el.addEventListener('foo-changed', () => {
   this.bar = el.foo;
 });
 ```
+
+[demo]: https://demo-oqnsobgpht.now.sh/
+
 [cev1]: https://developers.google.com/web/fundamentals/getting-started/primers/customelements
 
