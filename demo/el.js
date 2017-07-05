@@ -52,7 +52,15 @@ export default class El extends HTMLElement {
   constructor() {
     super();
     let sr = this.attachShadow({ mode: 'open' });
-    const { bindings, markup } = bindi(`{{#employees}} {{item.name}} {{/employees}}`, this);
+    const { bindings, markup } = bindi(`
+      <h1>[[user.name]] [[user.surname]]</h1>
+      <user-editor user="{{user}}"></user-editor> 
+      <dom-repeat items="{{names}}"> 
+        <template>
+          <h1>[[item]] [[index]]</h1>
+        </template>
+      </dom-repeat>
+    `, this);
     sr.innerHTML = markup;
   }
 }

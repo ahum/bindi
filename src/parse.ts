@@ -117,47 +117,54 @@ enum NodeType {
   TEXT_NODE = 3
 }
 
-const walk = (node: Node, outNode: HTMLElement, acc: ParseModel[]): ParseModel[] => {
+const walk = (node: HTMLElement, outNode: HTMLElement, acc: ParseModel[]): ParseModel[] => {
 
   if (node) {
 
 
     const { childNodes } = node;
 
-    logger.log('childNodes:', childNodes);
-    if (!childNodes || childNodes.length === 0) {
+    if (node.nodeName.toLowerCase() === 'template') {
+
+      outNode.innerHTML += node.outerHTML;
       return acc;
     } else {
 
-      return [].reduce.call(childNodes, (acc: ParseModel[], n) => {
-        if (n.nodeType === NodeType.TEXT_NODE) {
-          const out = n.textContent.replace(/\[\[(.*?)\]\]/g, function (match, raw: string) {
-            const expression = Expression.build(raw);
-            const targetId = registerTarget(acc, expression, { type: 'text', bind: BindType.ONE_WAY });
-            return `<span bindi-id="${targetId}"></span>`;
-          });
-          console.log('n.textContent', n.textContent);
-          console.log('out:', out);
+      logger.log('childNodes:', childNodes);
+      if (!childNodes || childNodes.length === 0) {
+        return acc;
+      } else {
 
-          outNode.innerHTML += out;
-          return acc;
-        } else {
-          const nn = n.cloneNode(false);
-
-          for (var i = 0; i < nn.attributes.length; i++) {
-            var a = nn.attributes[i];
-            if (a.value.indexOf('{{') === 0 && a.value.indexOf('}}') === a.value.length - 2) {
-              const raw: string = a.value.match(/^{{(.*?)}}$/)[1];
+        return [].reduce.call(childNodes, (acc: ParseModel[], n) => {
+          if (n.nodeType === NodeType.TEXT_NODE) {
+            const out = n.textContent.replace(/\[\[(.*?)\]\]/g, function (match, raw: string) {
               const expression = Expression.build(raw);
-              const targetId = registerTarget(acc, expression, { type: 'prop', propName: a.name, bind: BindType.TWO_WAY });
-              nn.removeAttribute(a.name);
-              nn.setAttribute('bindi-id', targetId);
+              const targetId = registerTarget(acc, expression, { type: 'text', bind: BindType.ONE_WAY });
+              return `<span bindi-id="${targetId}"></span>`;
+            });
+            console.log('n.textContent', n.textContent);
+            console.log('out:', out);
+
+            outNode.innerHTML += out;
+            return acc;
+          } else {
+            const nn = n.cloneNode(false);
+
+            for (var i = 0; i < nn.attributes.length; i++) {
+              var a = nn.attributes[i];
+              if (a.value.indexOf('{{') === 0 && a.value.indexOf('}}') === a.value.length - 2) {
+                const raw: string = a.value.match(/^{{(.*?)}}$/)[1];
+                const expression = Expression.build(raw);
+                const targetId = registerTarget(acc, expression, { type: 'prop', propName: a.name, bind: BindType.TWO_WAY });
+                nn.removeAttribute(a.name);
+                nn.setAttribute('bindi-id', targetId);
+              }
             }
+            outNode.appendChild(nn);
+            return walk(n, nn, acc);
           }
-          outNode.appendChild(nn);
-          return walk(n, nn, acc);
-        }
-      }, acc);
+        }, acc);
+      }
     }
   } else {
     return acc;
