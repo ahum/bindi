@@ -2,13 +2,15 @@
 
 binding for custom elements.
 
-This is an experimental library that provides data binding support for vanilla [v1 custom elements](https://developers.google.com/web/fundamentals/getting-started/primers/customelements).
+This is an experimental library that provides data binding support for vanilla [v1 custom elements][cev1]
 
 This means that you can write your custom elements as close to the standard, bindi just saves you some boilerplating.
 
+> At this time the lib is just an experiment. This is not for use in a real project.
+
 ## why?
 
-Because the custom element v1 spec is pretty good and the only thing that was preventing me from using without any frameworks was the lack of data binding.
+Because the [custom element v1][cev1] spec is pretty good and the only thing that was preventing me from using without any frameworks was the lack of data binding.
 
 So I thought 'if i could allow a way for data-binding to be defined, then convert that to logic belonging to the custom element that'd be great'.
 
@@ -18,7 +20,7 @@ So I thought 'if i could allow a way for data-binding to be defined, then conver
 ```html
 <div>[[name]]</div>
 ```
-and returns an object: `{markup, bind}`. the markup looks like: 
+and returns an object: `{markup:string, bind: (el:HTMLElement) => void}`. the markup looks like: 
 ```html
 <div><span bindi-id="0"></span></div>
 ```
@@ -41,8 +43,11 @@ class MyEl extends HTMLElement{
 }
 customElements.define('my-el', MyEl);
 
-document.querySelector('my-el').name = 'Ed';
+document.querySelector('my-el').name = 'Ed'; //my-el will now contain 'Ed'.
+
 ```
+
+The binding definitions are trying to follow polymer syntax as much as possible.
 
 ## install
 
@@ -67,8 +72,17 @@ cd demo
 * single prop expression: `{{foo}}`
 * custom event names: `x="{{foo::input}}"`
 * nested prop expression: `{{foo.bar}}`
-* arrays? see `dom-repeat` in demo as a rough guess on how to achieve this. 
+
+## not supported
 * computed expressions? no
+* attribute bindings? no
+
+## kind of supported?
+* arrays? see `dom-repeat` in demo as a rough guess on how to achieve this. 
+
+
+
+### notes
 
 Uses polymer convention of adding an event listener for a binding so: `<el foo="{{bar}}">` adds: 
 
@@ -77,3 +91,5 @@ el.addEventListener('foo-changed', () => {
   this.bar = el.foo;
 });
 ```
+[cev1]: https://developers.google.com/web/fundamentals/getting-started/primers/customelements
+
