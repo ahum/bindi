@@ -95,7 +95,7 @@ el.addEventListener('foo-changed', () => {
 });
 ```
 
-[demo]: https://bindi-demo-dwttutlaoj.now.sh 
+[demo]: https://bindi-demo-yathxxtpgo.now.sh
 
 [cev1]: https://developers.google.com/web/fundamentals/getting-started/primers/customelements
 

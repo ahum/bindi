@@ -1,5 +1,9 @@
 import { prepare } from '../src/index';
 
+/**
+ * The template for the custom element.
+ * Note the use of {{}} and [[]] bindings.
+ */
 const binding = prepare(`
       <style> 
         .header{
@@ -57,13 +61,18 @@ export default class El extends HTMLElement {
     binding.bind(this);
   }
 
+  /**
+   * We are using mobx, so we only need to remove the element from the array.
+   */
   deleteFriend(friend, index) {
-    console.log('delete friend');
     this.friends.splice(index, 1);
-    console.log('this.friends:', this.friends);
   }
 
   connectedCallback() {
+
+    /**
+     * You can still do manual event listening if you want:
+     */
     this.shadowRoot.querySelector('#add-button').addEventListener('click', e => {
       this.friends.push('new friend');
     });
