@@ -6,6 +6,7 @@
   "types": "lib/index.d.ts",
   "dependencies": {
     "lodash": "^4.17.4",
+    "morphdom": "^2.3.3",
     "mustache": "^2.3.0"
   },
   "devDependencies": {

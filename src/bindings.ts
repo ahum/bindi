@@ -11,7 +11,7 @@ export type OnChange = (v: any, src: Target) => void;
 export class TargetedBinding {
 
   private bound;
-
+  private node;
   constructor(
     readonly el: HTMLElement,
     readonly expression: Expression,
@@ -19,6 +19,10 @@ export class TargetedBinding {
     readonly onChange: OnChange) {
 
     this.bound = this.eventHandler.bind(this);
+    this.node = this.el.shadowRoot.querySelector(`[bindi-id="${this.target.id}"]`);
+    const eventName = this.target.event ? this.target.event : `${(this.target as any).propName}-changed`;
+    logger.log(`listen for ${eventName} on ${this.node}`);
+    this.node.addEventListener(eventName, this.bound);
   }
 
   eventHandler(e: Event) {
@@ -29,22 +33,14 @@ export class TargetedBinding {
 
   set(v) {
     const { id, type, event } = this.target;
-    const node = this.el.shadowRoot.querySelector(`[bindi-id="${id}"]`);
 
     if (type === 'text') {
-      node.textContent = v;
+      this.node.textContent = v;
     } else if (type === 'attribute') {
       //node.setAttribute((this.target as any).attr, v);
       //TODO
     } else if (type === 'prop') {
-      node[(this.target as any).propName] = v;
-      const eventName = event ? event : `${(this.target as any).propName}-changed`;
-      logger.log('listen for: ', eventName, node);
-      node.addEventListener(eventName, this.bound);
-    }
-
-    if (event) {
-      node.addEventListener(event, this.bound);
+      this.node[(this.target as any).propName] = v;
     }
   }
 }
@@ -97,6 +93,7 @@ export interface Initable {
 }
 
 export class EventBind implements Initable {
+  private logger = getLogger('eventbind');
   constructor(readonly elementRoot: HTMLElement, readonly event: string, readonly fn: string, readonly id: string) {
 
     this.onEvent = this.onEvent.bind(this);
@@ -110,7 +107,7 @@ export class EventBind implements Initable {
   }
 
   init(): void {
-    logger.log(`[init] add listener for ${this.event}`);
+    this.logger.log(`[init] add listener for ${this.event}`);
     const el = this.elementRoot.shadowRoot.querySelector(`[bindi-id="${this.id}"]`);
     if (el) {
       el.addEventListener(this.event, this.onEvent);

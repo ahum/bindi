@@ -7,12 +7,18 @@ const binding = prepare(`
           padding: 1px;
           padding-left: 10px;
         }
+
+        .tt{
+          display: flex;
+        }
       </style>
       <div class="header">
         <h1>[[user.name]] [[user.surname]]</h1>
       </div>
       <user-editor user="{{user}}"></user-editor> 
       <h3>Friends:</h3>
+      <button id="add-button">add</button>
+      <div class="tt">
       <dom-repeat items="{{friends}}"> 
         <template>
           <style>
@@ -34,7 +40,12 @@ const binding = prepare(`
           <button id="delete-button" on-click="deleteFriend">delete</button>
         </template>
       </dom-repeat>
-      <button id="add-button">add</button>
+      <dom-repeat items="{{friends}}">
+        <template>
+        <div>[[item]]</div>
+        </template>
+      </dom-repeat>
+      </div>
     `);
 
 export default class El extends HTMLElement {
@@ -47,7 +58,9 @@ export default class El extends HTMLElement {
   }
 
   deleteFriend(friend, index) {
-    console.log('delete friend')
+    console.log('delete friend');
+    this.friends.splice(index, 1);
+    console.log('this.friends:', this.friends);
   }
 
   connectedCallback() {
