@@ -7,7 +7,7 @@ import getLogger from './log';
 
 const logger = getLogger('bindi');
 
-export function prepare(rawMarkup: string): { markup: string, bind: (el: HTMLElement) => void } {
+export function prepare(rawMarkup: string): { markup: string, bind: (el: HTMLElement) => ParseModel[] } {
   //1. parse the markup looking for candidates
   const { models, markup } = parse(rawMarkup);
 
@@ -38,7 +38,7 @@ export function prepare(rawMarkup: string): { markup: string, bind: (el: HTMLEle
         b.init();
       });
 
-      return { markup, models };
+      return models;
     }
   };
 }

@@ -22,15 +22,20 @@ export default class DomRepeat extends HTMLElement {
       constructor() {
         super();
         let sr = this.attachShadow({ mode: 'open' });
-        //map bindings here ?
-        this.deleteFriend = function (e) {
-          console.log(this);
-          parent.getRootNode().host.deleteFriend(this.item, parseInt(this.getAttribute('key')));
-        }
         sr.innerHTML = markup;
-        bind(this);
+        const bindings = bind(this);
+
+        //map bindings to parent context.. 
+        bindings.forEach(b => {
+          if (b.fn) {
+            this[b.fn] = function (e) {
+              parent.getRootNode().host[b.fn](this.item, parseInt(this.getAttribute('key')));
+            }
+          }
+        });
       }
     }
+
     this.itemChanged = this.itemChanged.bind(this);
   }
 
