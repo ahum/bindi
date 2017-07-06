@@ -1,4 +1,5 @@
 import { Expression, Target } from './parse';
+import { isObservable, observable } from 'mobx';
 import { get as nestedGet, set as nestedSet } from './nested-accessor';
 
 import getLogger from './log';
@@ -91,7 +92,33 @@ export class PathGroup {
   }
 }
 
-export class BindingGroup {
+export interface Initable {
+  init(): void;
+}
+
+export class EventBind implements Initable {
+  constructor(readonly elementRoot: HTMLElement, readonly event: string, readonly fn: string, readonly id: string) {
+
+    this.onEvent = this.onEvent.bind(this);
+  }
+
+  onEvent(e: Event) {
+    logger.log('[onEvent]', e);
+    if (this.elementRoot[this.fn]) {
+      this.elementRoot[this.fn](e);
+    }
+  }
+
+  init(): void {
+    logger.log(`[init] add listener for ${this.event}`);
+    const el = this.elementRoot.shadowRoot.querySelector(`[bindi-id="${this.id}"]`);
+    if (el) {
+      el.addEventListener(this.event, this.onEvent);
+    }
+  }
+}
+
+export class BindingGroup implements Initable {
 
   private paths: PathGroup[] = [];
 
@@ -141,72 +168,16 @@ export class BindingGroup {
     const that = this;
     Object.defineProperty(this.elementRoot, this.root, {
       set: function (v) {
-        that.value = v;
+        if (isObservable(v)) {
+          that.value = v;
+        } else {
+          that.value = observable(v);
+        }
 
         that.paths.forEach(pg => {
           pg.set(that.value);
         });
 
-      },
-      get: function () {
-        return that.value;
-      }
-    });
-  }
-}
-
-export class ExpressionBindings {
-  private targetedBindings: any[];
-  private value;
-
-  constructor(readonly el: HTMLElement, readonly expression: Expression, readonly targets: Target[]) {
-    this.targetedBindings = targets
-      .map(t => new TargetedBinding(el, expression, t, this.onChange));
-  }
-
-  onChange(newValue, binding) {
-
-    this.value = newValue;
-
-    const eventType = `${this.expression}-changed`;
-
-
-    const remainder = this.targetedBindings.filter(tb => tb !== binding);
-
-    remainder.forEach(t => t.set(this.value));
-
-    const opts: any = {
-      bubbles: true,
-      composed: true
-    };
-    //TODO: this should not be automatically dispatched.
-    this.el.dispatchEvent(new CustomEvent(eventType, opts));
-  }
-
-  init() {
-    const { el, expression } = this;
-    const that = this;
-
-    this.targetedBindings.forEach(t => t.onChange = this.onChange.bind(this));
-
-    /**
-     * define a setter for `expression` that calls .set on the targeted bindings
-     */
-    Object.defineProperty(el, expression.root, {
-      set: function (v) {
-        that.value = v;
-        if (!expression.nested) {
-          that.targetedBindings.forEach(t => {
-            t.set(v);
-          });
-        } else {
-          const nestedValue = nestedGet(v, expression.rest);
-          if (nestedValue) {
-            that.targetedBindings.forEach(t => {
-              t.set(nestedValue);
-            });
-          }
-        }
       },
       get: function () {
         return that.value;

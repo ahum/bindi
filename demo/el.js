@@ -31,6 +31,7 @@ const binding = prepare(`
             }
           </style>
           <input type="text" value="{{item::input}}"></input>
+          <button id="delete-button" on-click="deleteFriend">delete</button>
         </template>
       </dom-repeat>
       <button id="add-button">add</button>
@@ -43,6 +44,10 @@ export default class El extends HTMLElement {
     let sr = this.attachShadow({ mode: 'open' });
     sr.innerHTML = binding.markup;
     binding.bind(this);
+  }
+
+  deleteFriend(friend, index) {
+    console.log('delete friend')
   }
 
   connectedCallback() {

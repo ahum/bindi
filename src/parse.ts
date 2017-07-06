@@ -33,10 +33,26 @@ export interface PropTarget extends Target {
   propName: string;
 }
 
-export interface ParseModel {
+export const isBindingModel = (pm: ParseModel): pm is BindingModel => {
+  return (<BindingModel>pm).expression !== undefined;
+};
+
+export const isEventModel = (pm: ParseModel): pm is EventModel => {
+  return (<EventModel>pm).event !== undefined;
+};
+
+export interface BindingModel {
   expression: Expression;
   target: Target;
 }
+
+export interface EventModel {
+  event: string;
+  fn: string;
+  id: string;
+}
+
+export type ParseModel = BindingModel | EventModel;
 
 /**
  * Find an existing model or create one
@@ -113,6 +129,17 @@ const registerTarget = (models: ParseModel[], expression: Expression, opts: Regi
   return target.id;
 };
 
+const registerEvent = (models: ParseModel[], event: string, fn: string, id?: string): string => {
+  id = id || `${models.length}_${event}_${fn}`;
+  models.push({
+    event,
+    fn,
+    id
+  });
+
+  return id;
+};
+
 enum NodeType {
   TEXT_NODE = 3
 }
@@ -122,7 +149,7 @@ const walk = (node: Element, outNode: HTMLElement, acc: ParseModel[]): ParseMode
   if (node) {
 
 
-    const { childNodes } = node;
+    const childNodes: NodeList = node.childNodes;
 
     if (node.nodeName.toLowerCase() === 'template') {
 
@@ -135,7 +162,7 @@ const walk = (node: Element, outNode: HTMLElement, acc: ParseModel[]): ParseMode
         return acc;
       } else {
 
-        return [].reduce.call(childNodes, (acc: ParseModel[], n) => {
+        return [].reduce.call(childNodes, (acc: ParseModel[], n: HTMLElement) => {
           if (n.nodeType === NodeType.TEXT_NODE) {
             const out = n.textContent.replace(/\[\[(.*?)\]\]/g, function (match, raw: string) {
               const expression = Expression.build(raw);
@@ -146,7 +173,7 @@ const walk = (node: Element, outNode: HTMLElement, acc: ParseModel[]): ParseMode
             outNode.innerHTML += out;
             return acc;
           } else {
-            const nn = n.cloneNode(false);
+            const nn: HTMLElement = n.cloneNode(false) as HTMLElement;
 
             for (var i = 0; i < nn.attributes.length; i++) {
               var a = nn.attributes[i];
@@ -156,6 +183,15 @@ const walk = (node: Element, outNode: HTMLElement, acc: ParseModel[]): ParseMode
                 const targetId = registerTarget(acc, expression, { type: 'prop', propName: a.name, bind: BindType.TWO_WAY });
                 nn.removeAttribute(a.name);
                 nn.setAttribute('bindi-id', targetId);
+              }
+
+              if (a.name === 'on-click') {
+                const existingId = nn.getAttribute('bindi-id');
+                const targetId = registerEvent(acc, 'click', a.value, existingId);
+                if (targetId !== existingId) {
+                  nn.removeAttribute('on-click');
+                  nn.setAttribute('bindi-id', targetId);
+                }
               }
             }
             outNode.appendChild(nn);

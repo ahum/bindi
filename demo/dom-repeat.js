@@ -1,6 +1,6 @@
 import { autorun, isObservable, observable } from 'mobx';
 
-import bindi from '../src/index';
+import { prepare } from '../src/index';
 
 export default class DomRepeat extends HTMLElement {
   constructor() {
@@ -11,8 +11,9 @@ export default class DomRepeat extends HTMLElement {
       constructor() {
         super();
         let sr = this.attachShadow({ mode: 'open' });
-        const { markup } = bindi(template, this);
+        const { markup, bind } = prepare(template);
         sr.innerHTML = markup;
+        bind(this);
       }
     }
     this.itemChanged = this.itemChanged.bind(this);
@@ -46,7 +47,9 @@ export default class DomRepeat extends HTMLElement {
 
   set items(i) {
 
+    console.log('set items: ', i);
     if (isObservable(i)) {
+      console.log('is observable is true for: ', i);
       this._items = i
     } else {
       console.log('?', i);
