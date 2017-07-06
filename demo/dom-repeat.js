@@ -11,6 +11,20 @@ function* idMaker() {
 }
 const gen = idMaker();
 
+/**
+ * A custom element that can be used for repeated elements.
+ * 
+ * <dom-repeat items="{{x}}">
+ *   <template>
+ *     <div>[[item]] [[index]]</div>
+ *     <button on-click="clickMe">click</button>
+ *   </template>
+ * </dom-repeat>
+ * 
+ * The template is parsed as a bindi template, meaning that a setter for item and index will be created for the internal template element.
+ * 
+ * Makes use of mobx and morphdom simplify updates.
+ */
 export default class DomRepeat extends HTMLElement {
   constructor() {
     super();
@@ -41,10 +55,6 @@ export default class DomRepeat extends HTMLElement {
 
   connectedCallback() {
     customElements.define(this.elementName, this._c);
-  }
-
-  itemsUpdated() {
-    console.log('items updated', this._items);
   }
 
   itemChanged(e) {
@@ -84,5 +94,4 @@ export default class DomRepeat extends HTMLElement {
       });
     });
   }
-
 }

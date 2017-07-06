@@ -74,6 +74,7 @@ cd demo
 * single prop expression: `{{foo}}`
 * custom event names: `x="{{foo::input}}"`
 * nested prop expression: `{{foo.bar}}`
+* `on-click="xxxxx"` - just to get an idea of how to handle events.
 
 ## not supported
 * computed expressions? no
@@ -94,7 +95,7 @@ el.addEventListener('foo-changed', () => {
 });
 ```
 
-[demo]: https://demo-oqnsobgpht.now.sh/
+[demo]: https://bindi-demo-dwttutlaoj.now.sh 
 
 [cev1]: https://developers.google.com/web/fundamentals/getting-started/primers/customelements
 
