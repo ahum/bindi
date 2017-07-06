@@ -30,9 +30,10 @@ const binding = prepare(`
               margin: 4px;
             }
           </style>
-          <span class="index">[[index]]</span>[[item]]
+          <input type="text" value="{{item::input}}"></input>
         </template>
       </dom-repeat>
+      <button id="add-button">add</button>
     `);
 
 export default class El extends HTMLElement {
@@ -42,5 +43,11 @@ export default class El extends HTMLElement {
     let sr = this.attachShadow({ mode: 'open' });
     sr.innerHTML = binding.markup;
     binding.bind(this);
+  }
+
+  connectedCallback() {
+    this.shadowRoot.querySelector('#add-button').addEventListener('click', e => {
+      this.friends.push('new friend');
+    });
   }
 }
