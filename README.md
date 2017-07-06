@@ -16,6 +16,10 @@ Because the [custom element v1][cev1] spec is pretty good and the only thing tha
 
 So I thought 'if i could allow a way for data-binding to be defined, then convert that to logic belonging to the custom element that'd be great'.
 
+## custom-elements and databinding ... why not polymer?
+
+Because polymer makes heavy use of html imports, which is unlikely to become a standard.
+
 ## how?
 
 `bindi` exposes a method `prepare` that takes markup like:
